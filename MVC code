@@ -1,0 +1,337 @@
+
+import java.util.ArrayList;
+import java.util.List;
+
+// ==================================================
+// MODEL LAYER
+// ==================================================
+
+// Abstract Animal Class
+abstract class Animals {
+    private final String name;
+    private final int id;
+
+    protected Animals(String name, int id) {
+        this.name = name;
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public abstract String getType();
+
+    @Override
+    public String toString() {
+        return getType() + " '" + name + "' (ID " + id + ")";
+    }
+}
+
+// Dog Class
+class Dog extends Animals {
+    public Dog(String name, int id) {
+        super(name, id);
+    }
+
+    @Override
+    public String getType() {
+        return "Dog";
+    }
+}
+
+// Cat Class
+class Cat extends Animals {
+    public Cat(String name, int id) {
+        super(name, id);
+    }
+
+    @Override
+    public String getType() {
+        return "Cat";
+    }
+}
+
+// Fish Class
+class Fish extends Animals {
+    public Fish(String name, int id) {
+        super(name, id);
+    }
+
+    @Override
+    public String getType() {
+        return "Fish";
+    }
+}
+
+// ==================================================
+// FACTORY DESIGN PATTERN
+// ==================================================
+
+class AnimalFactory {
+
+    private AnimalFactory() {}
+
+    public static Animals createAnimal(
+            String type, String name, int id) {
+
+        if (type == null) {
+            throw new IllegalArgumentException(
+                    "Animal type cannot be null");
+        }
+
+        switch (type.trim().toLowerCase()) {
+            case "dog":
+                return new Dog(name, id);
+
+            case "cat":
+                return new Cat(name, id);
+
+            case "fish":
+                return new Fish(name, id);
+
+            default:
+                throw new IllegalArgumentException(
+                        "Unknown animal type: " + type);
+        }
+    }
+}
+
+// ==================================================
+// OBSERVER DESIGN PATTERN
+// ==================================================
+
+interface DonationObserver {
+    void update(String message);
+}
+
+abstract class BranchCenter implements DonationObserver {
+
+    private final String city;
+
+    protected BranchCenter(String city) {
+        this.city = city;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    @Override
+    public void update(String message) {
+        System.out.println(
+                "[" + city + " Donation Center] notified -> "
+                        + message);
+    }
+}
+
+class CairoDonationCenter extends BranchCenter {
+    public CairoDonationCenter() {
+        super("Cairo");
+    }
+}
+
+class GizaDonationCenter extends BranchCenter {
+    public GizaDonationCenter() {
+        super("Giza");
+    }
+}
+
+class AlexandriaDonationCenter extends BranchCenter {
+    public AlexandriaDonationCenter() {
+        super("Alexandria");
+    }
+}
+
+// ==================================================
+// SINGLETON + SUBJECT
+// ==================================================
+
+class DonationCenter {
+
+    private static DonationCenter instance;
+
+    private final List<DonationObserver> observers =
+            new ArrayList<>();
+
+    private final List<Animals> donatedAnimals =
+            new ArrayList<>();
+
+    private DonationCenter() {}
+
+    // Singleton Pattern
+    public static synchronized DonationCenter getInstance() {
+
+        if (instance == null) {
+            instance = new DonationCenter();
+        }
+
+        return instance;
+    }
+
+    // Observer Pattern
+    public void registerObserver(DonationObserver o) {
+        if (!observers.contains(o)) {
+            observers.add(o);
+        }
+    }
+
+    public void removeObserver(DonationObserver o) {
+        observers.remove(o);
+    }
+
+    private void notifyObservers(String message) {
+        for (DonationObserver o : observers) {
+            o.update(message);
+        }
+    }
+
+    public void donate(Animals animal) {
+        donatedAnimals.add(animal);
+
+        notifyObservers(
+                "New donation received: " + animal);
+    }
+
+    public List<Animals> getDonatedAnimals() {
+        return new ArrayList<>(donatedAnimals);
+    }
+}
+
+// ==================================================
+// VIEW LAYER
+// ==================================================
+
+class DonationView {
+
+    public void showMessage(String message) {
+        System.out.println(message);
+    }
+
+    public void displayAnimals(List<Animals> animals) {
+
+        System.out.println("\n===== Donated Animals =====");
+
+        if (animals.isEmpty()) {
+            System.out.println("No animals donated yet.");
+            return;
+        }
+
+        for (Animals animal : animals) {
+            System.out.println(animal);
+        }
+
+        System.out.println("===========================\n");
+    }
+}
+
+// ==================================================
+// CONTROLLER LAYER
+// ==================================================
+
+class DonationController {
+
+    private final DonationCenter center;
+    private final DonationView view;
+
+    public DonationController(
+            DonationCenter center,
+            DonationView view) {
+
+        this.center = center;
+        this.view = view;
+    }
+
+    // Register branch
+    public void registerBranch(DonationObserver branch) {
+        center.registerObserver(branch);
+    }
+
+    // Remove branch
+    public void removeBranch(DonationObserver branch) {
+        center.removeObserver(branch);
+    }
+
+    // Donate animal using Factory
+    public void donateAnimal(
+            String type, String name, int id) {
+
+        try {
+            Animals animal =
+                    AnimalFactory.createAnimal(type, name, id);
+
+            center.donate(animal);
+
+            view.showMessage(
+                    "Donation completed successfully!");
+
+        } catch (IllegalArgumentException e) {
+
+            view.showMessage("Error: " + e.getMessage());
+        }
+    }
+
+    // Display all donations
+    public void displayDonations() {
+        view.displayAnimals(center.getDonatedAnimals());
+    }
+}
+
+// ==================================================
+// MAIN CLASS
+// ==================================================
+
+public class Main {
+
+    public static void main(String[] args) {
+
+        // Singleton
+        DonationCenter center =
+                DonationCenter.getInstance();
+
+        // Create View
+        DonationView view = new DonationView();
+
+        // Create Controller
+        DonationController controller =
+                new DonationController(center, view);
+
+        // Create branches
+        BranchCenter cairo = new CairoDonationCenter();
+        BranchCenter giza = new GizaDonationCenter();
+        BranchCenter alex = new AlexandriaDonationCenter();
+
+        // Register observers
+        controller.registerBranch(cairo);
+        controller.registerBranch(giza);
+        controller.registerBranch(alex);
+
+        // Donate animals
+        controller.donateAnimal("dog", "Rex", 1);
+        controller.donateAnimal("cat", "Luna", 2);
+
+        // Display donations
+        controller.displayDonations();
+
+        // Alexandria unsubscribes
+        view.showMessage(
+                "\n-- Alexandria unsubscribes --\n");
+
+        controller.removeBranch(alex);
+
+        // Donate another animal
+        controller.donateAnimal("fish", "Nemo", 3);
+
+        // Display donations again
+        controller.displayDonations();
+
+        // Test Singleton
+        view.showMessage(
+                "Same instance? " +
+                (center == DonationCenter.getInstance()));
+    }
+}
