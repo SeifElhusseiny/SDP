@@ -1,0 +1,184 @@
+import java.util.ArrayList;
+import java.util.List;
+
+// ===================== Animals   Decorator DP=====================
+public abstract class Animals {
+    private final String name;
+    private final int id;
+
+    protected Animals(String name, int id) {
+        this.name = name;
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public abstract String getType();
+
+    @Override
+    public String toString() {
+        return getType() + " '" + name + "' (ID " + id + ")";
+    }
+}
+
+class Dog extends Animals {          // was "implements" -> must be "extends"
+    public Dog(String name, int id) {
+        super(name, id);
+    }
+
+    @Override
+    public String getType() {
+        return "Dog";
+    }
+}
+
+class Cat extends Animals {
+    public Cat(String name, int id) {
+        super(name, id);
+    }
+
+    @Override
+    public String getType() {
+        return "Cat";
+    }
+}
+
+class Fish extends Animals {
+    public Fish(String name, int id) {
+        super(name, id);
+    }
+
+    @Override
+    public String getType() {
+        return "Fish";
+    }
+}
+
+// ===================== Observer =====================
+interface DonationObserver {
+    void update(String message);
+}
+
+abstract class BranchCenter implements DonationObserver {
+    private final String city;
+
+    protected BranchCenter(String city) {
+        this.city = city;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    @Override
+    public void update(String message) {
+        System.out.println("[" + city + " Donation Center] notified -> " + message);
+    }
+}
+
+class CairoDonationCenter extends BranchCenter {
+    public CairoDonationCenter() { super("Cairo"); }
+}
+
+class GizaDonationCenter extends BranchCenter {
+    public GizaDonationCenter() { super("Giza"); }
+}
+
+class AlexandriaDonationCenter extends BranchCenter {
+    public AlexandriaDonationCenter() { super("Alexandria"); }
+}
+
+// ===================== Singleton + Subject =====================
+class DonationCenter {
+    private static DonationCenter instance;
+
+    private final List<DonationObserver> observers = new ArrayList<>();
+    private final List<Animals> donatedAnimals = new ArrayList<>();
+
+    private DonationCenter() { }     // no outside instantiation
+
+    public static synchronized DonationCenter getInstance() {
+        if (instance == null) {
+            instance = new DonationCenter();
+        }
+        return instance;
+    }
+
+    public void registerObserver(DonationObserver o) {
+        if (!observers.contains(o)) {
+            observers.add(o);
+        }
+    }
+
+    public void removeObserver(DonationObserver o) {
+        observers.remove(o);
+    }
+
+    private void notifyObservers(String message) {
+        for (DonationObserver o : observers) {
+            o.update(message);
+        }
+    }
+
+    public void donate(Animals animal) {
+        donatedAnimals.add(animal);
+        notifyObservers("New donation received: " + animal);
+    }
+
+    public List<Animals> getDonatedAnimals() {
+        return new ArrayList<>(donatedAnimals);
+    }
+}
+
+//factory design pattern//
+class AnimalFactory {
+
+    private AnimalFactory() { }   // utility class, no instances
+
+    public static Animals createAnimal(String type, String name, int id) {
+        if (type == null) {
+            throw new IllegalArgumentException("Animal type cannot be null");
+        }
+        switch (type.trim().toLowerCase()) {
+            case "dog":  return new Dog(name, id);
+            case "cat":  return new Cat(name, id);
+            case "fish": return new Fish(name, id);
+            default:
+                throw new IllegalArgumentException("Unknown animal type: " + type);
+        }
+    }
+}
+// ===================== Demo =====================
+class Main {
+    public static void main(String[] args) {
+        DonationCenter center = DonationCenter.getInstance();
+
+        BranchCenter cairo = new CairoDonationCenter();
+        BranchCenter giza = new GizaDonationCenter();
+        BranchCenter alex = new AlexandriaDonationCenter();
+
+        center.registerObserver(cairo);
+        center.registerObserver(giza);
+        center.registerObserver(alex);
+
+        center.donate(AnimalFactory.createAnimal("dog", "Rex", 1));
+        center.donate(AnimalFactory.createAnimal("cat", "Luna", 2));
+
+
+
+        System.out.println("\n-- Alexandria unsubscribes --\n");
+        center.removeObserver(alex);
+
+
+
+        center.donate(AnimalFactory.createAnimal("fish", "Nemo", 3));
+
+        System.out.println("\nSame instance? " + (center == DonationCenter.getInstance()));
+    }
+}
