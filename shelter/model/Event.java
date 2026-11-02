@@ -15,7 +15,10 @@ public class Event implements Subject {
     private String date;
     private String location;
     private int capacity;
+    private String requiredSkill = "Any";
     private final List<Observer> observers = new ArrayList<>();
+    private final List<Observer> attended = new ArrayList<>();
+    private final List<VolunteerAssignment> assignments = new ArrayList<>();
 
     public Event(int id, String title, String category, String date, String location, int capacity) {
         this.id = id;
@@ -45,6 +48,44 @@ public class Event implements Subject {
         }
     }
 
+    // Ticket number given to a registered user, e.g. EVT1-U3.
+    public String getTicketNumber(User user) {
+        return "EVT" + id + "-U" + user.getId();
+    }
+
+    public void markAttended(Observer observer) {
+        if (observers.contains(observer) && !attended.contains(observer)) {
+            attended.add(observer);
+        }
+    }
+
+    public boolean hasAttended(Observer observer) { return attended.contains(observer); }
+    public int getAttendedCount() { return attended.size(); }
+
+    // Assigning a volunteer also attaches them, so they get event updates too.
+    public void assignVolunteer(Volunteer volunteer, String task) {
+        assignments.add(new VolunteerAssignment(volunteer, task));
+        attach(volunteer);
+    }
+
+    public boolean isAssigned(Volunteer volunteer) {
+        for (VolunteerAssignment assignment : assignments) {
+            if (assignment.getVolunteer() == volunteer) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<VolunteerAssignment> getAssignments() { return new ArrayList<>(assignments); }
+
+    // Used when a user is deleted from the system.
+    public void removeUser(User user) {
+        observers.remove(user);
+        attended.remove(user);
+        assignments.removeIf(assignment -> assignment.getVolunteer() == user);
+    }
+
     public boolean isFull() { return observers.size() >= capacity; }
     public boolean isRegistered(Observer observer) { return observers.contains(observer); }
     public List<Observer> getRegisteredUsers() { return new ArrayList<>(observers); }
@@ -55,6 +96,8 @@ public class Event implements Subject {
     public String getDate() { return date; }
     public String getLocation() { return location; }
     public int getCapacity() { return capacity; }
+    public String getRequiredSkill() { return requiredSkill; }
+    public void setRequiredSkill(String requiredSkill) { this.requiredSkill = requiredSkill; }
 
     public void setTitle(String title) { this.title = title; }
     public void setCategory(String category) { this.category = category; }
@@ -65,6 +108,7 @@ public class Event implements Subject {
     @Override
     public String toString() {
         return "#" + id + " | " + title + " | " + category + " | " + date + " | " + location
-                + " | Registered: " + observers.size() + "/" + capacity;
+                + " | Needs volunteers for: " + requiredSkill
+                + " | Registered: " + observers.size() + "/" + capacity + " | Attended: " + attended.size();
     }
 }

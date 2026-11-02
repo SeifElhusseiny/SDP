@@ -25,6 +25,12 @@ public class LookupTable {
         return true;
     }
 
+    // Replaces all values (used when loading from the database).
+    public void setValues(List<String> newValues) {
+        values.clear();
+        values.addAll(newValues);
+    }
+
     public List<String> getAll() {
         return new ArrayList<>(values);
     }

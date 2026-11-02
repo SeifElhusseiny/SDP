@@ -1,5 +1,8 @@
 package shelter.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 // The shelter's beneficiaries.
 public class Animal {
     public static final String[] STATUSES = {"Available", "Under treatment", "Adopted"};
@@ -12,6 +15,8 @@ public class Animal {
     private int age;
     private String healthStatus;
     private String status;
+    private String needs = "None";
+    private final List<CareRecord> careRecords = new ArrayList<>();
 
     public Animal(int id, String name, String species, String breed, int age, String healthStatus) {
         this.id = id;
@@ -31,6 +36,13 @@ public class Animal {
     public String getHealthStatus() { return healthStatus; }
     public String getStatus() { return status; }
 
+    public String getNeeds() { return needs; }
+    public void setNeeds(String needs) { this.needs = needs; }
+
+    // Tracks the resources and services this animal received.
+    public void addCareRecord(CareRecord record) { careRecords.add(record); }
+    public List<CareRecord> getCareRecords() { return new ArrayList<>(careRecords); }
+
     public void setName(String name) { this.name = name; }
     public void setSpecies(String species) { this.species = species; }
     public void setBreed(String breed) { this.breed = breed; }
@@ -41,6 +53,6 @@ public class Animal {
     @Override
     public String toString() {
         return "#" + id + " | " + name + " | " + species + " (" + breed + ") | Age: " + age
-                + " | Health: " + healthStatus + " | Status: " + status;
+                + " | Health: " + healthStatus + " | Needs: " + needs + " | Status: " + status;
     }
 }
