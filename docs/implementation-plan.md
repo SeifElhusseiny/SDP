@@ -122,7 +122,7 @@ may be available through normal signup.
 - [ ] Add the Donation Management panel.
 - [ ] Add the Event Management panel.
 - [x] Add the Adoption Management panel.
-- [ ] Add the Lookup Tables panel.
+- [x] Add the Lookup Tables panel.
 - [ ] Add the Communication panel.
 - [ ] Add the Shelter Reports panel.
 - [ ] Add Volunteer account creation and management.
@@ -190,7 +190,7 @@ may be available through normal signup.
 
 ### Admin: Lookup, communication, and reports
 
-- [ ] Add, edit, and delete lookup-table values.
+- [x] Add, edit, and delete lookup-table values.
 - [ ] Message one user.
 - [ ] Message a whole user group.
 - [ ] Post available animals to social media.

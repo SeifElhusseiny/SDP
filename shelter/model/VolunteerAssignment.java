@@ -1,3 +1,5 @@
+
+
 package shelter.model;
 
 // A volunteer assigned to a task at an event.

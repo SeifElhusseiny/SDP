@@ -9,6 +9,9 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.DefaultListModel;
+import javax.swing.JDialog;
+import javax.swing.JList;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -58,6 +61,7 @@ public class AdminDashboardPanel extends JPanel {
         addSectionButton(buttons, "Donations");
         addSectionButton(buttons, "Events");
         addSectionButton(buttons, "Adoptions");
+        addActionButton(buttons, "Lookup tables", this::showLookupTables);
         addActionButton(buttons, "Add", this::add);
         addActionButton(buttons, "Edit", this::edit);
         addActionButton(buttons, "Delete", this::delete);
@@ -235,6 +239,95 @@ public class AdminDashboardPanel extends JPanel {
                 + "\nEvents: " + model.getAllEvents().size()
                 + "\nAdoptions: " + model.getAllAdoptions().size(), "Shelter report",
                 JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void showLookupTables() {
+        JDialog dialog = new JDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                "Lookup table management", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setLayout(new BorderLayout(10, 10));
+
+        JComboBox<shelter.model.LookupTable> selector = new JComboBox<>(
+                model.getAllLookupTables().toArray(new shelter.model.LookupTable[0]));
+        DefaultListModel<String> valuesModel = new DefaultListModel<>();
+        JList<String> valuesList = new JList<>(valuesModel);
+        valuesList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+
+        Runnable refreshValues = () -> {
+            valuesModel.clear();
+            shelter.model.LookupTable table = (shelter.model.LookupTable) selector.getSelectedItem();
+            if (table != null) {
+                for (String value : table.getAll()) {
+                    valuesModel.addElement(value);
+                }
+            }
+        };
+        selector.addActionListener(event -> refreshValues.run());
+
+        JPanel actions = new JPanel(new GridLayout(1, 3, 5, 5));
+        JButton addButton = new JButton("Add");
+        addButton.addActionListener(event -> {
+            shelter.model.LookupTable table = (shelter.model.LookupTable) selector.getSelectedItem();
+            String value = JOptionPane.showInputDialog(dialog, "New value:");
+            if (value != null && !value.trim().isEmpty()) {
+                if (!table.add(value.trim())) {
+                    showError(new IllegalArgumentException("The value is empty or already exists."));
+                    return;
+                }
+                saveAndRefresh();
+                refreshValues.run();
+            }
+        });
+        JButton updateButton = new JButton("Update");
+        updateButton.addActionListener(event -> {
+            int index = valuesList.getSelectedIndex();
+            shelter.model.LookupTable table = (shelter.model.LookupTable) selector.getSelectedItem();
+            if (index < 0 || table == null) {
+                showError(new IllegalArgumentException("Select a value first."));
+                return;
+            }
+            String value = JOptionPane.showInputDialog(dialog, "New value:", valuesList.getSelectedValue());
+            if (value != null && !value.trim().isEmpty()) {
+                if (table.getAll().contains(value.trim()) && !value.trim().equals(valuesList.getSelectedValue())) {
+                    showError(new IllegalArgumentException("The value already exists."));
+                    return;
+                }
+                if (!table.update(index, value.trim())) {
+                    showError(new IllegalArgumentException("The value could not be updated."));
+                    return;
+                }
+                saveAndRefresh();
+                refreshValues.run();
+            }
+        });
+        JButton deleteButton = new JButton("Delete");
+        deleteButton.addActionListener(event -> {
+            int index = valuesList.getSelectedIndex();
+            shelter.model.LookupTable table = (shelter.model.LookupTable) selector.getSelectedItem();
+            if (index < 0 || table == null) {
+                showError(new IllegalArgumentException("Select a value first."));
+                return;
+            }
+            if (JOptionPane.showConfirmDialog(dialog, "Delete selected value?", "Confirm",
+                    JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                table.delete(index);
+                saveAndRefresh();
+                refreshValues.run();
+            }
+        });
+        actions.add(addButton);
+        actions.add(updateButton);
+        actions.add(deleteButton);
+
+        JPanel top = new JPanel(new BorderLayout(5, 5));
+        top.add(new JLabel("Lookup table:"), BorderLayout.WEST);
+        top.add(selector, BorderLayout.CENTER);
+        dialog.add(top, BorderLayout.NORTH);
+        dialog.add(new JScrollPane(valuesList), BorderLayout.CENTER);
+        dialog.add(actions, BorderLayout.SOUTH);
+        refreshValues.run();
+        dialog.setSize(420, 320);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 
     private void showNotification(String recipient, String message) {

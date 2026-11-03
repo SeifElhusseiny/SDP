@@ -50,4 +50,9 @@ public class LookupTable {
         values.remove(index);
         return true;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }
