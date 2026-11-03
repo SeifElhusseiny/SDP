@@ -16,6 +16,7 @@ public abstract class User implements Observer {
     private String email;
     private String phone;
     private List<String> preferredChannels;
+    private String passwordHash = "";
 
     public User(int id, String name, String email, String phone, List<String> preferredChannels) {
         this.id = id;
@@ -56,10 +57,12 @@ public abstract class User implements Observer {
     public String getEmail() { return email; }
     public String getPhone() { return phone; }
     public List<String> getPreferredChannels() { return new ArrayList<>(preferredChannels); }
+    public String getPasswordHash() { return passwordHash; }
 
     public void setName(String name) { this.name = name; }
     public void setEmail(String email) { this.email = email; }
     public void setPhone(String phone) { this.phone = phone; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash == null ? "" : passwordHash; }
     public void setPreferredChannels(List<String> preferredChannels) {
         this.preferredChannels = atLeastOneChannel(preferredChannels);
     }

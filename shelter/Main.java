@@ -1,10 +1,11 @@
 package shelter;
 
-import shelter.controller.MainController;
 import shelter.database.JsonDatabase;
 import shelter.model.SampleData;
 import shelter.model.ShelterModel;
-import shelter.view.ConsoleView;
+import shelter.view.SwingMainFrame;
+
+import javax.swing.SwingUtilities;
 
 public class Main {
     public static void main(String[] args) {
@@ -21,6 +22,9 @@ public class Main {
             System.out.println("Data loaded from: " + database.getFolderPath());
         }
 
-        new MainController(new ConsoleView()).run();
+        SwingUtilities.invokeLater(() -> {
+            SwingMainFrame frame = new SwingMainFrame(model, database);
+            frame.setVisible(true);
+        });
     }
 }

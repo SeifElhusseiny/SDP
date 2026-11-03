@@ -3,21 +3,25 @@ package shelter.model;
 import java.util.Arrays;
 
 import shelter.patterns.factory.UserFactory;
+import shelter.service.AuthenticationService;
 
 // Fills the system with a few records so it is ready for a demo.
 public class SampleData {
     public static void load(ShelterModel model) {
-        model.addUser(UserFactory.createUser("Admin", model.nextUserId(), "Sara Ali", "sara@shelter.org", "01000000001", Arrays.asList("Email")));
-        model.addUser(UserFactory.createUser("Donor", model.nextUserId(), "Ahmed Hassan", "ahmed@mail.com", "01000000002", Arrays.asList("SMS", "Email")));
+        String demoPasswordHash = AuthenticationService.hash("demo1234".toCharArray());
+        model.addUser(UserFactory.createUser("Admin", model.nextUserId(), "Ahmed", "ahmed@shelter.org", "01000000001", Arrays.asList("Email"), demoPasswordHash));
+        model.addUser(UserFactory.createUser("Donor", model.nextUserId(), "Seif", "seif@mail.com", "01000000002", Arrays.asList("SMS", "Email"), demoPasswordHash));
 
-        Volunteer mona = (Volunteer) UserFactory.createUser("Volunteer", model.nextUserId(), "Mona Adel", "mona@mail.com", "01000000003", Arrays.asList("Email"));
-        mona.setSkill("Dog walking");
-        mona.setAvailability("Weekends");
-        model.addUser(mona);
+        Volunteer moaz = (Volunteer) UserFactory.createUser("Volunteer", model.nextUserId(), "Moaz", "moaz@mail.com", "01000000003", Arrays.asList("Email"));
+        moaz.setPasswordHash(demoPasswordHash);
+        moaz.setSkill("Dog walking");
+        moaz.setAvailability("Weekends");
+        model.addUser(moaz);
 
-        Adopter omar = (Adopter) UserFactory.createUser("Adopter", model.nextUserId(), "Omar Khaled", "omar@mail.com", "01000000004", Arrays.asList("Social media", "SMS"));
-        omar.setHomeType("House with garden");
-        model.addUser(omar);
+        Adopter patrick = (Adopter) UserFactory.createUser("Adopter", model.nextUserId(), "Patrick", "patrick@mail.com", "01000000004", Arrays.asList("Social media", "SMS"));
+        patrick.setPasswordHash(demoPasswordHash);
+        patrick.setHomeType("House with garden");
+        model.addUser(patrick);
 
         model.addAnimal(new Animal(model.nextAnimalId(), "Max", "Dog", "Golden Retriever", 3, "Healthy"));
         model.addAnimal(new Animal(model.nextAnimalId(), "Luna", "Cat", "Persian", 2, "Healthy"));

@@ -26,4 +26,11 @@ public class UserFactory {
                 throw new IllegalArgumentException("Unknown user type: " + type);
         }
     }
+
+    public static User createUser(String type, int id, String name, String email, String phone,
+            List<String> channels, String passwordHash) {
+        User user = createUser(type, id, name, email, phone, channels);
+        user.setPasswordHash(passwordHash);
+        return user;
+    }
 }

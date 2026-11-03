@@ -129,6 +129,7 @@ public class JsonDatabase {
         map.put("name", user.getName());
         map.put("email", user.getEmail());
         map.put("phone", user.getPhone());
+        map.put("passwordHash", user.getPasswordHash());
         map.put("channels", user.getPreferredChannels());
         if (user instanceof Donor) {
             map.put("totalDonated", ((Donor) user).getTotalDonated());
@@ -203,6 +204,7 @@ public class JsonDatabase {
         for (Map<String, Object> map : readList(USERS)) {
             User user = UserFactory.createUser(text(map, "role"), number(map, "id"), text(map, "name"),
                     text(map, "email"), text(map, "phone"), textList(map, "channels"));
+            user.setPasswordHash(text(map, "passwordHash"));
             if (user instanceof Donor) {
                 ((Donor) user).setTotalDonated(decimal(map, "totalDonated"));
             } else if (user instanceof Volunteer) {
