@@ -88,8 +88,8 @@ public class SwingMainFrame extends JFrame {
                 showRoleDashboard(user);
             }
         }, this::showWelcome), LOGIN);
-        mainContentPanel.add(new SignupPanel((role, name, email, phone, password) -> {
-            User user = authenticationService.signup(role, name, email, phone, password);
+        mainContentPanel.add(new SignupPanel((role, name, email, phone, channels, password) -> {
+            User user = authenticationService.signup(role, name, email, phone, channels, password);
             database.save(model);
             return user;
         }, this::showWelcome), SIGNUP);

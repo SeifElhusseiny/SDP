@@ -3,6 +3,7 @@ package shelter.view;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -26,6 +27,7 @@ public class SignupPanel extends JPanel {
         JPasswordField passwordField = new JPasswordField(22);
         JPasswordField confirmationField = new JPasswordField(22);
         JComboBox<String> roleBox = new JComboBox<>(new String[] {"Adopter", "Donor"});
+        NotificationChannelSelector channelSelector = new NotificationChannelSelector();
         JLabel errorLabel = new JLabel(" ");
         errorLabel.setForeground(java.awt.Color.RED);
         GridBagConstraints constraints = new GridBagConstraints();
@@ -41,6 +43,9 @@ public class SignupPanel extends JPanel {
         constraints.gridx = 0;
         constraints.gridy = 6;
         constraints.gridwidth = 2;
+        add(channelSelector, constraints);
+        constraints.gridx = 0;
+        constraints.gridy = 7;
         add(errorLabel, constraints);
 
         JButton signupButton = new JButton("Create account");
@@ -50,7 +55,8 @@ public class SignupPanel extends JPanel {
                     throw new IllegalArgumentException("Passwords do not match.");
                 }
                 User user = signupHandler.signup((String) roleBox.getSelectedItem(), nameField.getText(),
-                        emailField.getText(), phoneField.getText(), passwordField.getPassword());
+                        emailField.getText(), phoneField.getText(), channelSelector.getSelectedChannels(),
+                        passwordField.getPassword());
                 errorLabel.setText("Account created. You can now log in.");
                 JOptionPane.showMessageDialog(this, "Account created for " + user.getName() + ".");
                 backAction.run();
@@ -58,12 +64,12 @@ public class SignupPanel extends JPanel {
                 errorLabel.setText(exception.getMessage());
             }
         });
-        constraints.gridy = 7;
+        constraints.gridy = 8;
         add(signupButton, constraints);
 
         JButton backButton = new JButton("Back");
         backButton.addActionListener(event -> backAction.run());
-        constraints.gridy = 8;
+        constraints.gridy = 9;
         add(backButton, constraints);
     }
 
@@ -77,6 +83,6 @@ public class SignupPanel extends JPanel {
     }
 
     public interface SignupHandler {
-        User signup(String role, String name, String email, String phone, char[] password);
+        User signup(String role, String name, String email, String phone, List<String> channels, char[] password);
     }
 }

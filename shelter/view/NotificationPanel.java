@@ -1,7 +1,9 @@
 package shelter.view;
 
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.Window;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -22,11 +24,13 @@ public final class NotificationPanel {
         JDialog dialog = new JDialog(owner, "Notifications - " + user.getName(),
                 java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setLayout(new BorderLayout(10, 10));
-        dialog.add(new JLabel("Notification history"), BorderLayout.NORTH);
+        dialog.add(new JLabel("Notification history by channel"), BorderLayout.NORTH);
 
-        JList<String> notifications = new JList<>(user.getNotifications().toArray(new String[0]));
-        notifications.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        dialog.add(new JScrollPane(notifications), BorderLayout.CENTER);
+        JPanel channels = new JPanel(new GridLayout(1, 3, 8, 0));
+        channels.add(createChannelPanel("Email", user.getEmailNotifications()));
+        channels.add(createChannelPanel("Phone (SMS)", user.getPhoneNotifications()));
+        channels.add(createChannelPanel("Social media", user.getSocialMediaNotifications()));
+        dialog.add(channels, BorderLayout.CENTER);
 
         JButton close = new JButton("Close");
         close.addActionListener(event -> dialog.dispose());
@@ -34,8 +38,17 @@ public final class NotificationPanel {
         footer.add(close);
         dialog.add(footer, BorderLayout.SOUTH);
         ((JPanel) dialog.getContentPane()).setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-        dialog.setSize(520, 360);
+        dialog.setSize(900, 420);
         dialog.setLocationRelativeTo(owner);
         dialog.setVisible(true);
+    }
+
+    private static JPanel createChannelPanel(String title, List<String> messages) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createTitledBorder(title));
+        JList<String> notifications = new JList<>(messages.toArray(new String[0]));
+        notifications.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        panel.add(new JScrollPane(notifications), BorderLayout.CENTER);
+        return panel;
     }
 }

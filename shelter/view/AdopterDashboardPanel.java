@@ -100,8 +100,7 @@ public class AdopterDashboardPanel extends JPanel {
     }
 
     private void showProfile() {
-        showMessage("Name: " + adopter.getName() + "\nEmail: " + adopter.getEmail()
-                + "\nPhone: " + adopter.getPhone() + "\nHome type: " + adopter.getHomeType());
+        ProfileSettingsDialog.show(this, model, database, adopter);
     }
 
     private void showMessage(String message) {

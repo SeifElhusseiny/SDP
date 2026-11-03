@@ -44,6 +44,8 @@ Welcome page
 - Password hashing and verification
 - Session login and logout
 - Duplicate-email prevention
+- Notification-channel selection during signup and Admin user creation
+- Separate email, phone, and social-media notification histories
 - Role-based dashboard selection
 - JSON persistence for user accounts and password hashes
 
@@ -52,8 +54,11 @@ Welcome page
 A table-based interface for:
 
 - Viewing users and adding users through `UserFactory`
+- Searching and filtering users by role; editing user contact details, notification channels, Volunteer hours, and role-specific profile information
+- Validating user email format and preventing duplicate email addresses
 - Viewing and adding animals, and editing basic animal information
-- Viewing donations and events
+- Managing donations, donor histories and receipts, and annual tax statements
+- Managing events, attendee registration, volunteer assignments, attendance, reminders, and cancellation
 - Viewing, approving, rejecting, and deleting adoption requests
 - Deleting users and animals, with reference checks
 - Viewing a shelter summary report
@@ -65,7 +70,12 @@ A table-based interface for:
 - Submitting adoption requests with selectable adoption-package add-ons
 - Viewing the logged-in adopter's own requests and their status
 - Viewing the adopter profile
+- Editing profile details and notification preferences
 - Saving adoption requests to JSON
+
+### Donor Dashboard
+
+- Editing profile details and notification preferences
 
 ### Core Domain Capabilities
 
@@ -78,6 +88,8 @@ The original Java controllers and model support more operations than the Swing i
 - Event creation, registration, assignments, attendance, and reminders
 - Adoption approval, rejection, and decorator-based packages
 - Communication through notification strategies
+- Notification history organized by channel
+- Admin communication tools for individual messages, channel-subscriber broadcasts, and custom social-media posts delivered to subscribers
 - Shelter impact reports
 
 ## User Roles
