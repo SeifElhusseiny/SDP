@@ -9,14 +9,16 @@ import java.util.List;
 import shelter.model.ShelterModel;
 import shelter.model.User;
 import shelter.model.Validator;
-import shelter.patterns.factory.StrategyFactory;
-import shelter.patterns.factory.UserFactory;
+import shelter.patterns.factory.strategy.AbstractNotificationFactory;
+import shelter.patterns.factory.user.AbstractUserFactory;
 
 public class AuthenticationService {
     private final ShelterModel model;
+    private final List<AbstractNotificationFactory> notificationFactories;
 
-    public AuthenticationService(ShelterModel model) {
+    public AuthenticationService(ShelterModel model, List<AbstractNotificationFactory> notificationFactories) {
         this.model = model;
+        this.notificationFactories = notificationFactories;
     }
 
     public User login(String email, char[] password) {
@@ -27,7 +29,8 @@ public class AuthenticationService {
         return user;
     }
 
-    public User signup(String role, String name, String email, String phone, List<String> channels, char[] password) {
+    public User signup(AbstractUserFactory userFactory, String name, String email, String phone,
+            List<String> channels, char[] password) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Name cannot be empty.");
         }
@@ -46,17 +49,21 @@ public class AuthenticationService {
         if (findByEmail(email) != null) {
             throw new IllegalArgumentException("An account with this email already exists.");
         }
-        if (!"Adopter".equals(role) && !"Donor".equals(role)) {
+        if (userFactory == null || (!"Adopter".equals(userFactory.getUserType())
+                && !"Donor".equals(userFactory.getUserType()))) {
             throw new IllegalArgumentException("Public signup is only available for adopters and donors.");
         }
         if (channels == null || channels.isEmpty()) {
             throw new IllegalArgumentException("Select at least one notification channel.");
         }
-        if (!Arrays.asList(StrategyFactory.CHANNELS).containsAll(channels)) {
+        List<String> supportedChannels = new java.util.ArrayList<>();
+        for (AbstractNotificationFactory factory : notificationFactories) {
+            supportedChannels.add(factory.getChannel());
+        }
+        if (!supportedChannels.containsAll(channels)) {
             throw new IllegalArgumentException("Select valid notification channels.");
         }
-        User user = UserFactory.createUser(role, model.nextUserId(), name, email, phone,
-                channels, hash(password));
+        User user = userFactory.createUser(model.nextUserId(), name, email, phone, channels, hash(password));
         model.addUser(user);
         return user;
     }

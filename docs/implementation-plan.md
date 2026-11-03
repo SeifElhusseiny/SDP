@@ -107,7 +107,7 @@ may be available through normal signup.
 - [x] Confirm that both password fields match.
 - [x] Prevent public Admin signup.
 - [x] Prevent public Volunteer signup unless explicitly approved by the design.
-- [x] Create the user through the existing `UserFactory` where appropriate.
+- [x] Create the user through the injected role-specific factory.
 - [x] Save the new account.
 - [x] Return the user to Login after successful signup.
 
@@ -134,7 +134,7 @@ may be available through normal signup.
 - [x] View all users.
 - [x] Filter users by Admin, Volunteer, Adopter, or Donor.
 - [ ] View a user by ID.
-- [x] Add a user using `UserFactory`.
+- [x] Add a user using the injected role-specific factory.
 - [x] Validate email format and prevent duplicate emails when adding a user.
 - [x] Edit user profile and notification channels.
 - [x] Edit Volunteer hours.
@@ -263,8 +263,8 @@ may be available through normal signup.
 
 - [ ] Keep model classes independent of Swing.
 - [ ] Keep pattern classes independent of Swing.
-- [ ] Reuse `UserFactory` for creating supported user types.
-- [ ] Reuse payment strategies and their factory.
+- [ ] Inject role-specific factories for creating supported user types.
+- [ ] Reuse payment strategies and their injected factories.
 - [ ] Reuse notification strategies.
 - [ ] Reuse adoption-package decorators.
 - [ ] Preserve observer notifications for events and user updates.

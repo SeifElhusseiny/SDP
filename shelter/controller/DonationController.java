@@ -1,21 +1,22 @@
 package shelter.controller;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 
 import shelter.model.Donation;
 import shelter.model.Donor;
 import shelter.model.User;
-import shelter.patterns.factory.StrategyFactory;
+import shelter.patterns.factory.strategy.AbstractPaymentFactory;
 import shelter.patterns.strategy.PaymentStrategy;
 import shelter.view.ConsoleView;
 
 // Donations: CRUD + Strategy (payment) + Observer (donor and admins are notified).
 public class DonationController extends BaseController {
+    private final List<AbstractPaymentFactory> paymentFactories;
 
-    public DonationController(ConsoleView view) {
+    public DonationController(ConsoleView view, List<AbstractPaymentFactory> paymentFactories) {
         super(view);
+        this.paymentFactories = paymentFactories;
     }
 
     @Override
@@ -51,10 +52,10 @@ public class DonationController extends BaseController {
         String paymentMethod;
         if (type.equals("Money")) {
             amount = view.readPositiveDouble("Amount (EGP): ");
-            String method = view.chooseFrom("Payment method", Arrays.asList(StrategyFactory.PAYMENT_METHODS));
+            AbstractPaymentFactory paymentFactory = view.chooseObjectFrom("Payment method", paymentFactories);
             // STRATEGY: the chosen payment method decides which details to ask for,
             // how to check them, and how the payment is processed.
-            PaymentStrategy payment = StrategyFactory.createPayment(method);
+            PaymentStrategy payment = paymentFactory.createPayment();
             String[] fields = payment.getRequiredDetails();
             String[] details = new String[fields.length];
             for (int i = 0; i < fields.length; i++) {

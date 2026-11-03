@@ -9,14 +9,16 @@ import shelter.model.Animal;
 import shelter.model.User;
 import shelter.patterns.decorator.AdoptionPackage;
 import shelter.patterns.decorator.BasicAdoption;
-import shelter.patterns.factory.PackageFactory;
+import shelter.patterns.factory.decorator.AbstractPackageAddonFactory;
 import shelter.view.ConsoleView;
 
 // Adoptions: Decorator (build a package from add-ons) + approve/reject + CRUD.
 public class AdoptionController extends BaseController {
+    private final List<AbstractPackageAddonFactory> addonFactories;
 
-    public AdoptionController(ConsoleView view) {
+    public AdoptionController(ConsoleView view, List<AbstractPackageAddonFactory> addonFactories) {
         super(view);
+        this.addonFactories = addonFactories;
     }
 
     @Override
@@ -68,7 +70,8 @@ public class AdoptionController extends BaseController {
         }
 
         List<String> addOns = chooseAddOns();
-        AdoptionRequest request = new AdoptionRequest(model.nextAdoptionId(), (Adopter) user, animal, addOns);
+        AdoptionRequest request = new AdoptionRequest(model.nextAdoptionId(), (Adopter) user, animal, addOns,
+                addonFactories);
         model.addAdoption(request);
         view.showMessage("Request created: " + request);
     }
@@ -80,13 +83,17 @@ public class AdoptionController extends BaseController {
         while (true) {
             view.showMessage("Current package: " + adoptionPackage.getDescription()
                     + " = " + adoptionPackage.getCost() + " EGP");
-            int choice = view.showMenu("ADD-ONS", PackageFactory.ADD_ON_LABELS, "Done");
+            String[] labels = new String[addonFactories.size()];
+            for (int i = 0; i < addonFactories.size(); i++) {
+                labels[i] = addonFactories.get(i).getDisplayLabel();
+            }
+            int choice = view.showMenu("ADD-ONS", labels, "Done");
             if (choice == 0) {
                 return addOns;
             }
-            String addOn = PackageFactory.ADD_ONS[choice - 1];
-            adoptionPackage = PackageFactory.addOn(adoptionPackage, addOn);
-            addOns.add(addOn);
+            AbstractPackageAddonFactory addonFactory = addonFactories.get(choice - 1);
+            adoptionPackage = addonFactory.addTo(adoptionPackage);
+            addOns.add(addonFactory.getAddonName());
         }
     }
 

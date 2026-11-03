@@ -2,6 +2,7 @@ package shelter.view;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -16,20 +17,27 @@ import shelter.database.JsonDatabase;
 import shelter.model.Donation;
 import shelter.model.Donor;
 import shelter.model.ShelterModel;
-import shelter.patterns.factory.StrategyFactory;
+import shelter.patterns.factory.strategy.AbstractNotificationFactory;
+import shelter.patterns.factory.strategy.AbstractPaymentFactory;
 import shelter.patterns.strategy.PaymentStrategy;
 
 public class DonorDashboardPanel extends JPanel {
     private final ShelterModel model;
     private final JsonDatabase database;
     private final Donor donor;
+    private final List<AbstractPaymentFactory> paymentFactories;
+    private final List<AbstractNotificationFactory> notificationFactories;
     private final DefaultTableModel tableModel = new DefaultTableModel();
     private final JTable table = new JTable(tableModel);
 
-    public DonorDashboardPanel(ShelterModel model, JsonDatabase database, Donor donor, Runnable logoutAction) {
+    public DonorDashboardPanel(ShelterModel model, JsonDatabase database, Donor donor,
+            List<AbstractPaymentFactory> paymentFactories,
+            List<AbstractNotificationFactory> notificationFactories, Runnable logoutAction) {
         this.model = model;
         this.database = database;
         this.donor = donor;
+        this.paymentFactories = paymentFactories;
+        this.notificationFactories = notificationFactories;
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
         JPanel actions = new JPanel(new GridLayout(2, 3, 8, 8));
@@ -85,10 +93,11 @@ public class DonorDashboardPanel extends JPanel {
     }
 
     private String choosePayment(double amount) {
-        String method = (String) JOptionPane.showInputDialog(this, "Payment method", "Donation",
-                JOptionPane.PLAIN_MESSAGE, null, StrategyFactory.PAYMENT_METHODS, "Cash");
-        if (method == null) throw new IllegalArgumentException("Payment method is required.");
-        PaymentStrategy payment = StrategyFactory.createPayment(method);
+        Object selectedFactory = JOptionPane.showInputDialog(this, "Payment method", "Donation",
+                JOptionPane.PLAIN_MESSAGE, null, paymentFactories.toArray(), paymentFactories.get(0));
+        if (selectedFactory == null) throw new IllegalArgumentException("Payment method is required.");
+        AbstractPaymentFactory paymentFactory = (AbstractPaymentFactory) selectedFactory;
+        PaymentStrategy payment = paymentFactory.createPayment();
         String[] fields = payment.getRequiredDetails();
         String[] details = new String[fields.length];
         for (int i = 0; i < fields.length; i++) {
@@ -130,7 +139,7 @@ public class DonorDashboardPanel extends JPanel {
     }
 
     private void showProfile() {
-        ProfileSettingsDialog.show(this, model, database, donor);
+        ProfileSettingsDialog.show(this, model, database, donor, notificationFactories);
     }
 
     private String required(String label) {

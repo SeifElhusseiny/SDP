@@ -2,11 +2,14 @@ package shelter.model;
 
 import java.util.List;
 
+import shelter.patterns.factory.strategy.AbstractNotificationFactory;
+
 public class Donor extends User {
     private double totalDonated;
 
-    public Donor(int id, String name, String email, String phone, List<String> channels) {
-        super(id, name, email, phone, channels);
+    public Donor(int id, String name, String email, String phone, List<String> channels,
+            List<AbstractNotificationFactory> notificationFactories) {
+        super(id, name, email, phone, channels, notificationFactories);
     }
 
     @Override

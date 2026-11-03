@@ -53,7 +53,7 @@ Welcome page
 
 A table-based interface for:
 
-- Viewing users and adding users through `UserFactory`
+- Viewing users and adding users through injected role-specific factories
 - Searching and filtering users by role; editing user contact details, notification channels, Volunteer hours, and role-specific profile information
 - Validating user email format and preventing duplicate email addresses
 - Viewing and adding animals, and editing basic animal information
@@ -108,7 +108,7 @@ The original Java controllers and model support more operations than the Swing i
 | Pattern | Usage |
 |---------|-------|
 | **Singleton** | Shared `ShelterModel` and `JsonDatabase` |
-| **Factory** | Creation of user types and adoption packages |
+| **Factory Method / dependency injection** | Role-specific user, payment, notification, and adoption add-on factories are injected into UI and persistence paths. |
 | **Decorator** | Adoption-package add-ons |
 | **Strategy** | Payment and notification methods |
 | **Observer** | Donation, event, and adoption notifications |
@@ -177,7 +177,14 @@ shelter/
   database/       JSON persistence
   controller/     Console controllers
   service/        Authentication and session services
-  patterns/       Factory, Strategy, Decorator, and Observer implementations
+  patterns/
+    factory/
+      user/       User factories
+      strategy/   Payment and notification factories
+      decorator/  Adoption add-on factories
+    strategy/     Payment and notification strategies
+    decorator/    Adoption package decorators
+    observer/     Observer and Subject interfaces
   view/           Console and Swing views
 
 docs/

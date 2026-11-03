@@ -1,11 +1,14 @@
 package shelter.controller;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import shelter.model.Animal;
 import shelter.model.User;
-import shelter.patterns.factory.StrategyFactory;
-import shelter.patterns.factory.UserFactory;
+import shelter.patterns.factory.decorator.AbstractPackageAddonFactory;
+import shelter.patterns.factory.strategy.AbstractNotificationFactory;
+import shelter.patterns.factory.strategy.AbstractPaymentFactory;
+import shelter.patterns.factory.user.AbstractUserFactory;
 import shelter.patterns.strategy.NotificationService;
 import shelter.patterns.strategy.SocialMediaNotification;
 import shelter.view.ConsoleView;
@@ -19,14 +22,21 @@ public class MainController extends BaseController {
     private final AdoptionController adoptionController;
     private final LookupController lookupController;
     private final ReportController reportController;
+    private final List<AbstractUserFactory> userFactories;
+    private final List<AbstractNotificationFactory> notificationFactories;
 
-    public MainController(ConsoleView view) {
+    public MainController(ConsoleView view, List<AbstractUserFactory> userFactories,
+            List<AbstractNotificationFactory> notificationFactories,
+            List<AbstractPaymentFactory> paymentFactories,
+            List<AbstractPackageAddonFactory> addonFactories) {
         super(view);
-        userController = new UserController(view);
+        this.userFactories = userFactories;
+        this.notificationFactories = notificationFactories;
+        userController = new UserController(view, userFactories, notificationFactories);
         animalController = new AnimalController(view);
-        donationController = new DonationController(view);
+        donationController = new DonationController(view, paymentFactories);
         eventController = new EventController(view);
-        adoptionController = new AdoptionController(view);
+        adoptionController = new AdoptionController(view, addonFactories);
         lookupController = new LookupController(view);
         reportController = new ReportController(view);
     }
@@ -80,15 +90,20 @@ public class MainController extends BaseController {
             view.showMessage("No user with that ID.");
             return;
         }
-        String channel = view.chooseFrom("Send by", Arrays.asList(StrategyFactory.CHANNELS));
+        AbstractNotificationFactory notificationFactory =
+                view.chooseObjectFrom("Send by", notificationFactories);
         String message = view.readText("Message: ");
-        NotificationService service = new NotificationService(StrategyFactory.createNotification(channel));
+        NotificationService service = new NotificationService(notificationFactory.createNotification());
         service.notify(user, message);
     }
 
     // Each user receives it on their own preferred channel (Strategy chosen per user).
     private void messageGroup() {
-        String type = view.chooseFrom("Send to all", Arrays.asList(UserFactory.USER_TYPES));
+        List<String> userTypes = new ArrayList<>();
+        for (AbstractUserFactory userFactory : userFactories) {
+            userTypes.add(userFactory.getUserType());
+        }
+        String type = view.chooseFrom("Send to all", userTypes);
         if (model.getUsersByRole(type).isEmpty()) {
             view.showMessage("There are no " + type + "s yet.");
             return;

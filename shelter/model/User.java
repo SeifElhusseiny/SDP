@@ -3,7 +3,7 @@ package shelter.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import shelter.patterns.factory.StrategyFactory;
+import shelter.patterns.factory.strategy.AbstractNotificationFactory;
 import shelter.patterns.observer.Observer;
 import shelter.patterns.strategy.NotificationService;
 
@@ -16,16 +16,19 @@ public abstract class User implements Observer {
     private String email;
     private String phone;
     private List<String> preferredChannels;
+    private final List<AbstractNotificationFactory> notificationFactories;
     private String passwordHash = "";
     private final List<String> emailNotifications = new ArrayList<>();
     private final List<String> phoneNotifications = new ArrayList<>();
     private final List<String> socialMediaNotifications = new ArrayList<>();
 
-    public User(int id, String name, String email, String phone, List<String> preferredChannels) {
+    public User(int id, String name, String email, String phone, List<String> preferredChannels,
+            List<AbstractNotificationFactory> notificationFactories) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.phone = phone;
+        this.notificationFactories = new ArrayList<>(notificationFactories);
         this.preferredChannels = atLeastOneChannel(preferredChannels);
     }
 
@@ -47,25 +50,29 @@ public abstract class User implements Observer {
 
     @Override
     public void update(String message) {
-        // STRATEGY: one service, and the strategy is switched at runtime for each channel.
-        NotificationService service = new NotificationService(StrategyFactory.createNotification(preferredChannels.get(0)));
         for (String channel : preferredChannels) {
-            sendNotification(service, channel, message);
+            sendNotification(channel, message);
         }
     }
 
     public void notifyOnChannel(String channel, String message) {
-        if (!java.util.Arrays.asList(StrategyFactory.CHANNELS).contains(channel)) {
-            throw new IllegalArgumentException("Unknown notification channel: " + channel);
-        }
-        NotificationService service = new NotificationService(StrategyFactory.createNotification(channel));
-        sendNotification(service, channel, message);
+        sendNotification(channel, message);
     }
 
-    private void sendNotification(NotificationService service, String channel, String message) {
+    private void sendNotification(String channel, String message) {
+        AbstractNotificationFactory factory = findNotificationFactory(channel);
         addNotification(channel, message);
-        service.setStrategy(StrategyFactory.createNotification(channel));
+        NotificationService service = new NotificationService(factory.createNotification());
         service.notify(this, message);
+    }
+
+    private AbstractNotificationFactory findNotificationFactory(String channel) {
+        for (AbstractNotificationFactory factory : notificationFactories) {
+            if (factory.getChannel().equals(channel)) {
+                return factory;
+            }
+        }
+        throw new IllegalArgumentException("Unknown notification channel: " + channel);
     }
 
     private void addNotification(String channel, String message) {
@@ -150,6 +157,9 @@ public abstract class User implements Observer {
     }
 
     public void setPreferredChannels(List<String> preferredChannels) {
+        for (String channel : preferredChannels) {
+            findNotificationFactory(channel);
+        }
         this.preferredChannels = atLeastOneChannel(preferredChannels);
     }
 

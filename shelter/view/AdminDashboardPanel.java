@@ -3,6 +3,7 @@ package shelter.view;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -14,6 +15,7 @@ import javax.swing.JList;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -32,8 +34,10 @@ import shelter.model.ShelterModel;
 import shelter.model.User;
 import shelter.model.Validator;
 import shelter.model.Volunteer;
-import shelter.patterns.factory.UserFactory;
-import shelter.patterns.factory.StrategyFactory;
+import shelter.service.AuthenticationService;
+import shelter.patterns.factory.strategy.AbstractNotificationFactory;
+import shelter.patterns.factory.strategy.AbstractPaymentFactory;
+import shelter.patterns.factory.user.AbstractUserFactory;
 import shelter.patterns.observer.Observer;
 import shelter.patterns.strategy.PaymentStrategy;
 
@@ -41,6 +45,9 @@ public class AdminDashboardPanel extends JPanel {
     private static final String[] HOME_TYPES = {"Apartment", "House with garden", "Farm"};
     private final ShelterModel model;
     private final JsonDatabase database;
+    private final List<AbstractUserFactory> userFactories;
+    private final List<AbstractNotificationFactory> notificationFactories;
+    private final List<AbstractPaymentFactory> paymentFactories;
     private final User admin;
     private final Runnable logoutAction;
     private final DefaultTableModel tableModel = new DefaultTableModel();
@@ -48,20 +55,34 @@ public class AdminDashboardPanel extends JPanel {
     private final JLabel sectionLabel = new JLabel("Users");
     private final JPanel userFilters = new JPanel();
     private final JTextField userSearchField = new JTextField(16);
-    private final JComboBox<String> userRoleFilter =
-            new JComboBox<>(new String[] {"All roles", "Admin", "Volunteer", "Donor", "Adopter"});
+    private final JComboBox<String> userRoleFilter;
     private String section = "Users";
 
-    public AdminDashboardPanel(ShelterModel model, JsonDatabase database, User admin, Runnable logoutAction) {
+    public AdminDashboardPanel(ShelterModel model, JsonDatabase database, User admin,
+            List<AbstractUserFactory> userFactories, List<AbstractNotificationFactory> notificationFactories,
+            List<AbstractPaymentFactory> paymentFactories, Runnable logoutAction) {
         this.model = model;
         this.database = database;
+        this.userFactories = userFactories;
+        this.notificationFactories = notificationFactories;
+        this.paymentFactories = paymentFactories;
         this.admin = admin;
         this.logoutAction = logoutAction;
+        this.userRoleFilter = new JComboBox<>(roleOptions(userFactories));
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
         add(createHeader(), BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);
         refresh();
+    }
+
+    private static String[] roleOptions(List<AbstractUserFactory> userFactories) {
+        String[] options = new String[userFactories.size() + 1];
+        options[0] = "All roles";
+        for (int i = 0; i < userFactories.size(); i++) {
+            options[i + 1] = userFactories.get(i).getUserType();
+        }
+        return options;
     }
 
     private JPanel createHeader() {
@@ -175,9 +196,10 @@ public class AdminDashboardPanel extends JPanel {
     private void add() {
         try {
             if ("Users".equals(section)) {
-                String role = (String) JOptionPane.showInputDialog(this, "Role", "Add user",
-                        JOptionPane.PLAIN_MESSAGE, null, UserFactory.USER_TYPES, "Volunteer");
-                if (role == null) return;
+                AbstractUserFactory userFactory = (AbstractUserFactory) JOptionPane.showInputDialog(this,
+                        "Role", "Add user", JOptionPane.PLAIN_MESSAGE, null,
+                        userFactories.toArray(new AbstractUserFactory[0]), userFactories.get(0));
+                if (userFactory == null) return;
                 String name = required("Name");
                 String email = required("Email");
                 validateEmail(email, -1);
@@ -185,13 +207,22 @@ public class AdminDashboardPanel extends JPanel {
                 if (!Validator.isValidPhone(phone)) {
                     throw new IllegalArgumentException(Validator.PHONE_RULE);
                 }
-                NotificationChannelSelector channelSelector = new NotificationChannelSelector();
+                String passwordHash = null;
+                if (!"Volunteer".equals(userFactory.getUserType())) {
+                    passwordHash = promptPasswordHash();
+                    if (passwordHash == null) return;
+                }
+                NotificationChannelSelector channelSelector =
+                        new NotificationChannelSelector(notificationFactories);
                 int channelChoice = JOptionPane.showConfirmDialog(this, channelSelector,
                         "Choose notification channels", JOptionPane.OK_CANCEL_OPTION,
                         JOptionPane.PLAIN_MESSAGE);
                 if (channelChoice != JOptionPane.OK_OPTION) return;
-                User user = UserFactory.createUser(role, model.nextUserId(), name, email, phone,
+                User user = userFactory.createUser(model.nextUserId(), name, email, phone,
                         channelSelector.getSelectedChannels());
+                if (passwordHash != null) {
+                    user.setPasswordHash(passwordHash);
+                }
                 model.addUser(user);
             } else if ("Animals".equals(section)) {
                 String name = required("Name");
@@ -213,6 +244,39 @@ public class AdminDashboardPanel extends JPanel {
             saveAndRefresh();
         } catch (RuntimeException exception) {
             showError(exception);
+        }
+    }
+
+    private String promptPasswordHash() {
+        JPasswordField passwordField = new JPasswordField(20);
+        JPasswordField confirmationField = new JPasswordField(20);
+        JPanel fields = new JPanel(new GridLayout(0, 2, 8, 6));
+        fields.add(new JLabel("Password (at least 6 characters):"));
+        fields.add(passwordField);
+        fields.add(new JLabel("Confirm password:"));
+        fields.add(confirmationField);
+        if (JOptionPane.showConfirmDialog(this, fields, "Set account password",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) {
+            passwordField.setText("");
+            confirmationField.setText("");
+            return null;
+        }
+
+        char[] password = passwordField.getPassword();
+        char[] confirmation = confirmationField.getPassword();
+        try {
+            if (password.length < 6) {
+                throw new IllegalArgumentException("Password must contain at least 6 characters.");
+            }
+            if (!Arrays.equals(password, confirmation)) {
+                throw new IllegalArgumentException("Passwords do not match.");
+            }
+            return AuthenticationService.hash(password);
+        } finally {
+            Arrays.fill(password, '\0');
+            Arrays.fill(confirmation, '\0');
+            passwordField.setText("");
+            confirmationField.setText("");
         }
     }
 
@@ -266,7 +330,7 @@ public class AdminDashboardPanel extends JPanel {
         JTextField emailField = new JTextField(user.getEmail(), 24);
         JTextField phoneField = new JTextField(user.getPhone(), 24);
         NotificationChannelSelector channelSelector =
-                new NotificationChannelSelector(user.getPreferredChannels());
+                new NotificationChannelSelector(notificationFactories, user.getPreferredChannels());
 
         JPanel fields = new JPanel(new GridLayout(0, 2, 8, 6));
         fields.add(new JLabel("Name:"));
@@ -417,10 +481,11 @@ public class AdminDashboardPanel extends JPanel {
         double amount = positiveAmount("Amount or estimated value (EGP)");
         String paymentMethod = "In-kind";
         if ("Money".equals(type)) {
-            String method = chooseValue("Payment method",
-                    java.util.Arrays.asList(StrategyFactory.PAYMENT_METHODS), "Cash");
-            if (method == null) return;
-            PaymentStrategy payment = StrategyFactory.createPayment(method);
+            AbstractPaymentFactory paymentFactory = (AbstractPaymentFactory) JOptionPane.showInputDialog(this,
+                    "Payment method", "Donation", JOptionPane.PLAIN_MESSAGE, null,
+                    paymentFactories.toArray(), paymentFactories.get(0));
+            if (paymentFactory == null) return;
+            PaymentStrategy payment = paymentFactory.createPayment();
             String[] details = new String[payment.getRequiredDetails().length];
             String[] fields = payment.getRequiredDetails();
             for (int i = 0; i < fields.length; i++) {
