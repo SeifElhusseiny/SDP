@@ -15,9 +15,13 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import shelter.model.User;
+import shelter.patterns.factory.strategy.AbstractNotificationFactory;
+import shelter.patterns.factory.user.AbstractUserFactory;
 
 public class SignupPanel extends JPanel {
-    public SignupPanel(SignupHandler signupHandler, Runnable backAction) {
+    public SignupPanel(List<AbstractUserFactory> signupFactories,
+            List<AbstractNotificationFactory> notificationFactories,
+            SignupHandler signupHandler, Runnable backAction) {
         setLayout(new GridBagLayout());
         setBorder(BorderFactory.createEmptyBorder(30, 150, 30, 150));
 
@@ -26,8 +30,9 @@ public class SignupPanel extends JPanel {
         JTextField phoneField = new JTextField(22);
         JPasswordField passwordField = new JPasswordField(22);
         JPasswordField confirmationField = new JPasswordField(22);
-        JComboBox<String> roleBox = new JComboBox<>(new String[] {"Adopter", "Donor"});
-        NotificationChannelSelector channelSelector = new NotificationChannelSelector();
+        JComboBox<AbstractUserFactory> roleBox =
+                new JComboBox<>(signupFactories.toArray(new AbstractUserFactory[0]));
+        NotificationChannelSelector channelSelector = new NotificationChannelSelector(notificationFactories);
         JLabel errorLabel = new JLabel(" ");
         errorLabel.setForeground(java.awt.Color.RED);
         GridBagConstraints constraints = new GridBagConstraints();
@@ -54,7 +59,7 @@ public class SignupPanel extends JPanel {
                 if (!new String(passwordField.getPassword()).equals(new String(confirmationField.getPassword()))) {
                     throw new IllegalArgumentException("Passwords do not match.");
                 }
-                User user = signupHandler.signup((String) roleBox.getSelectedItem(), nameField.getText(),
+                User user = signupHandler.signup((AbstractUserFactory) roleBox.getSelectedItem(), nameField.getText(),
                         emailField.getText(), phoneField.getText(), channelSelector.getSelectedChannels(),
                         passwordField.getPassword());
                 errorLabel.setText("Account created. You can now log in.");
@@ -83,6 +88,7 @@ public class SignupPanel extends JPanel {
     }
 
     public interface SignupHandler {
-        User signup(String role, String name, String email, String phone, List<String> channels, char[] password);
+        User signup(AbstractUserFactory userFactory, String name, String email, String phone,
+                List<String> channels, char[] password);
     }
 }

@@ -9,6 +9,7 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -23,6 +24,10 @@ import shelter.model.Adopter;
 import shelter.model.Donor;
 import shelter.model.Volunteer;
 import shelter.model.User;
+import shelter.patterns.factory.decorator.AbstractPackageAddonFactory;
+import shelter.patterns.factory.strategy.AbstractNotificationFactory;
+import shelter.patterns.factory.strategy.AbstractPaymentFactory;
+import shelter.patterns.factory.user.AbstractUserFactory;
 import shelter.service.AuthenticationService;
 import shelter.service.Session;
 
@@ -34,6 +39,10 @@ public class SwingMainFrame extends JFrame {
 
     private final ShelterModel model;
     private final JsonDatabase database;
+    private final List<AbstractUserFactory> userFactories;
+    private final List<AbstractNotificationFactory> notificationFactories;
+    private final List<AbstractPaymentFactory> paymentFactories;
+    private final List<AbstractPackageAddonFactory> addonFactories;
     private final AuthenticationService authenticationService;
     private final Session session = new Session();
     private final CardLayout mainCardLayout = new CardLayout();
@@ -43,10 +52,17 @@ public class SwingMainFrame extends JFrame {
     private final DashboardPanel dashboardPanel;
     private final JPanel dashboardShell = new JPanel(new BorderLayout());
 
-    public SwingMainFrame(ShelterModel model, JsonDatabase database) {
+    public SwingMainFrame(ShelterModel model, JsonDatabase database, List<AbstractUserFactory> userFactories,
+            List<AbstractNotificationFactory> notificationFactories,
+            List<AbstractPaymentFactory> paymentFactories,
+            List<AbstractPackageAddonFactory> addonFactories) {
         this.model = model;
         this.database = database;
-        authenticationService = new AuthenticationService(model);
+        this.userFactories = userFactories;
+        this.notificationFactories = notificationFactories;
+        this.paymentFactories = paymentFactories;
+        this.addonFactories = addonFactories;
+        authenticationService = new AuthenticationService(model, notificationFactories);
         dashboardPanel = new DashboardPanel(model);
 
         setTitle("Paws & Whiskers Animal Shelter");
@@ -88,8 +104,15 @@ public class SwingMainFrame extends JFrame {
                 showRoleDashboard(user);
             }
         }, this::showWelcome), LOGIN);
-        mainContentPanel.add(new SignupPanel((role, name, email, phone, channels, password) -> {
-            User user = authenticationService.signup(role, name, email, phone, channels, password);
+        List<AbstractUserFactory> signupFactories = new java.util.ArrayList<>();
+        for (AbstractUserFactory factory : userFactories) {
+            if ("Adopter".equals(factory.getUserType()) || "Donor".equals(factory.getUserType())) {
+                signupFactories.add(factory);
+            }
+        }
+        mainContentPanel.add(new SignupPanel(signupFactories, notificationFactories,
+                (userFactory, name, email, phone, channels, password) -> {
+            User user = authenticationService.signup(userFactory, name, email, phone, channels, password);
             database.save(model);
             return user;
         }, this::showWelcome), SIGNUP);
@@ -204,16 +227,19 @@ public class SwingMainFrame extends JFrame {
         JPanel dashboard;
         switch (user.getRole()) {
             case "Admin":
-                dashboard = new AdminDashboardPanel(model, database, user, this::logout);
+                dashboard = new AdminDashboardPanel(model, database, user, userFactories,
+                        notificationFactories, paymentFactories, this::logout);
                 break;
             case "Volunteer":
                 dashboard = new VolunteerDashboardPanel(model, database, (Volunteer) user, this::logout);
                 break;
             case "Adopter":
-                dashboard = new AdopterDashboardPanel(model, database, (Adopter) user, this::logout);
+                dashboard = new AdopterDashboardPanel(model, database, (Adopter) user,
+                        addonFactories, notificationFactories, this::logout);
                 break;
             case "Donor":
-                dashboard = new DonorDashboardPanel(model, database, (Donor) user, this::logout);
+                dashboard = new DonorDashboardPanel(model, database, (Donor) user,
+                        paymentFactories, notificationFactories, this::logout);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported user role: " + user.getRole());

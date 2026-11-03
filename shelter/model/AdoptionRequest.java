@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shelter.patterns.decorator.AdoptionPackage;
-import shelter.patterns.factory.PackageFactory;
+import shelter.patterns.decorator.BasicAdoption;
+import shelter.patterns.factory.decorator.AbstractPackageAddonFactory;
 
 public class AdoptionRequest {
     private final int id;
@@ -15,12 +16,27 @@ public class AdoptionRequest {
     private String status = "Pending";
 
     // The add-on names are kept so the DECORATOR chain can be rebuilt after loading from the database.
-    public AdoptionRequest(int id, Adopter adopter, Animal animal, List<String> addOns) {
+    public AdoptionRequest(int id, Adopter adopter, Animal animal, List<String> addOns,
+            List<AbstractPackageAddonFactory> addonFactories) {
         this.id = id;
         this.adopter = adopter;
         this.animal = animal;
         this.addOns = new ArrayList<>(addOns);
-        this.adoptionPackage = PackageFactory.build(addOns);
+        AdoptionPackage builtPackage = new BasicAdoption();
+        for (String addOn : addOns) {
+            builtPackage = findAddonFactory(addonFactories, addOn).addTo(builtPackage);
+        }
+        this.adoptionPackage = builtPackage;
+    }
+
+    private AbstractPackageAddonFactory findAddonFactory(List<AbstractPackageAddonFactory> addonFactories,
+            String addonName) {
+        for (AbstractPackageAddonFactory factory : addonFactories) {
+            if (factory.getAddonName().equals(addonName)) {
+                return factory;
+            }
+        }
+        throw new IllegalArgumentException("Unknown adoption add-on: " + addonName);
     }
 
     public void approve() {

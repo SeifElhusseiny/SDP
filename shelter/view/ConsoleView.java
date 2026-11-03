@@ -127,6 +127,15 @@ public class ConsoleView {
         return options.get(choice - 1);
     }
 
+    public <T> T chooseObjectFrom(String title, List<T> options) {
+        System.out.println(title + ":");
+        for (int i = 0; i < options.size(); i++) {
+            System.out.println("  " + (i + 1) + ". " + options.get(i));
+        }
+        int choice = readInt("Choose: ", 1, options.size());
+        return options.get(choice - 1);
+    }
+
     // Lets the user pick one or more options, e.g. "1,3". Returns the chosen values.
     public List<String> chooseMultiple(String title, List<String> options) {
         System.out.println(title + " (you can choose more than one):");

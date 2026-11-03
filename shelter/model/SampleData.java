@@ -1,25 +1,32 @@
 package shelter.model;
 
 import java.util.Arrays;
+import java.util.List;
 
-import shelter.patterns.factory.UserFactory;
+import shelter.patterns.factory.strategy.AbstractNotificationFactory;
+import shelter.patterns.factory.user.AdminUserFactory;
+import shelter.patterns.factory.user.AdopterUserFactory;
+import shelter.patterns.factory.user.DonorUserFactory;
+import shelter.patterns.factory.user.VolunteerUserFactory;
 import shelter.service.AuthenticationService;
 
 // Fills the system with a few records so it is ready for a demo.
 public class SampleData {
-    public static void load(ShelterModel model) {
+    public static void load(ShelterModel model, List<AbstractNotificationFactory> notificationFactories) {
         String demoPasswordHash = AuthenticationService.hash("demo1234".toCharArray());
-        model.addUser(UserFactory.createUser("Admin", model.nextUserId(), "Ahmed", "ahmed@shelter.org", "01000000001", Arrays.asList("Email"), demoPasswordHash));
-        model.addUser(UserFactory.createUser("Donor", model.nextUserId(), "Seif", "seif@mail.com", "01000000002", Arrays.asList("SMS", "Email"), demoPasswordHash));
+        model.addUser(new AdminUserFactory(notificationFactories).createUser(model.nextUserId(), "Ahmed", "ahmed@shelter.org",
+                "01000000001", Arrays.asList("Email"), demoPasswordHash));
+        model.addUser(new DonorUserFactory(notificationFactories).createUser(model.nextUserId(), "Seif", "seif@mail.com",
+                "01000000002", Arrays.asList("SMS", "Email"), demoPasswordHash));
 
-        Volunteer moaz = (Volunteer) UserFactory.createUser("Volunteer", model.nextUserId(), "Moaz", "moaz@mail.com", "01000000003", Arrays.asList("Email"));
-        moaz.setPasswordHash(demoPasswordHash);
+        Volunteer moaz = (Volunteer) new VolunteerUserFactory(notificationFactories).createUser(model.nextUserId(), "Moaz",
+                "moaz@mail.com", "01000000003", Arrays.asList("Email"), demoPasswordHash);
         moaz.setSkill("Dog walking");
         moaz.setAvailability("Weekends");
         model.addUser(moaz);
 
-        Adopter patrick = (Adopter) UserFactory.createUser("Adopter", model.nextUserId(), "Patrick", "patrick@mail.com", "01000000004", Arrays.asList("Social media", "SMS"));
-        patrick.setPasswordHash(demoPasswordHash);
+        Adopter patrick = (Adopter) new AdopterUserFactory(notificationFactories).createUser(model.nextUserId(), "Patrick",
+                "patrick@mail.com", "01000000004", Arrays.asList("Social media", "SMS"), demoPasswordHash);
         patrick.setHomeType("House with garden");
         model.addUser(patrick);
 

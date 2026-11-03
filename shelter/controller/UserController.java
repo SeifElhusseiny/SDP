@@ -10,16 +10,21 @@ import shelter.model.Event;
 import shelter.model.User;
 import shelter.model.Validator;
 import shelter.model.Volunteer;
-import shelter.patterns.factory.StrategyFactory;
-import shelter.patterns.factory.UserFactory;
+import shelter.patterns.factory.strategy.AbstractNotificationFactory;
+import shelter.patterns.factory.user.AbstractUserFactory;
 import shelter.view.ConsoleView;
 
 // User Control Panel: full CRUD for every user type.
 public class UserController extends BaseController {
     private static final String[] HOME_TYPES = {"Apartment", "House with garden", "Farm"};
+    private final List<AbstractUserFactory> userFactories;
+    private final List<AbstractNotificationFactory> notificationFactories;
 
-    public UserController(ConsoleView view) {
+    public UserController(ConsoleView view, List<AbstractUserFactory> userFactories,
+            List<AbstractNotificationFactory> notificationFactories) {
         super(view);
+        this.userFactories = userFactories;
+        this.notificationFactories = notificationFactories;
     }
 
     @Override
@@ -44,14 +49,13 @@ public class UserController extends BaseController {
     }
 
     private void addUser() {
-        String type = view.chooseFrom("User type", Arrays.asList(UserFactory.USER_TYPES));
+        AbstractUserFactory userFactory = view.chooseObjectFrom("User type", userFactories);
         String name = view.readText("Name: ");
         String email = view.readValid("Email: ", Validator::isValidEmail, Validator.EMAIL_RULE);
         String phone = view.readValid("Phone: ", Validator::isValidPhone, Validator.PHONE_RULE);
-        List<String> channels = view.chooseMultiple("Notification channels", Arrays.asList(StrategyFactory.CHANNELS));
+        List<String> channels = view.chooseMultiple("Notification channels", notificationChannels());
 
-        // FACTORY: the factory decides which subclass to create.
-        User user = UserFactory.createUser(type, model.nextUserId(), name, email, phone, channels);
+        User user = userFactory.createUser(model.nextUserId(), name, email, phone, channels);
 
         if (user instanceof Volunteer) {
             Volunteer volunteer = (Volunteer) user;
@@ -66,7 +70,11 @@ public class UserController extends BaseController {
     }
 
     private void viewByType() {
-        String type = view.chooseFrom("User type", Arrays.asList(UserFactory.USER_TYPES));
+        List<String> userTypes = new java.util.ArrayList<>();
+        for (AbstractUserFactory userFactory : userFactories) {
+            userTypes.add(userFactory.getUserType());
+        }
+        String type = view.chooseFrom("User type", userTypes);
         view.showList(type + "s", model.getUsersByRole(type));
     }
 
@@ -86,7 +94,7 @@ public class UserController extends BaseController {
         user.setEmail(view.readOptionalValid("Email", user.getEmail(), Validator::isValidEmail, Validator.EMAIL_RULE));
         user.setPhone(view.readOptionalValid("Phone", user.getPhone(), Validator::isValidPhone, Validator.PHONE_RULE));
         if (view.confirm("Change notification channels?")) {
-            user.setPreferredChannels(view.chooseMultiple("Notification channels", Arrays.asList(StrategyFactory.CHANNELS)));
+            user.setPreferredChannels(view.chooseMultiple("Notification channels", notificationChannels()));
         }
         if (user instanceof Volunteer) {
             Volunteer volunteer = (Volunteer) user;
@@ -98,6 +106,14 @@ public class UserController extends BaseController {
             ((Adopter) user).setHomeType(view.chooseFrom("Home type", Arrays.asList(HOME_TYPES)));
         }
         view.showMessage("Updated: " + user);
+    }
+
+    private List<String> notificationChannels() {
+        List<String> channels = new java.util.ArrayList<>();
+        for (AbstractNotificationFactory factory : notificationFactories) {
+            channels.add(factory.getChannel());
+        }
+        return channels;
     }
 
     private void deleteUser() {

@@ -3,6 +3,7 @@ package shelter.view;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -17,19 +18,26 @@ import shelter.model.Adopter;
 import shelter.model.AdoptionRequest;
 import shelter.model.Animal;
 import shelter.model.ShelterModel;
-import shelter.patterns.factory.PackageFactory;
+import shelter.patterns.factory.decorator.AbstractPackageAddonFactory;
+import shelter.patterns.factory.strategy.AbstractNotificationFactory;
 
 public class AdopterDashboardPanel extends JPanel {
     private final ShelterModel model;
     private final JsonDatabase database;
     private final Adopter adopter;
+    private final List<AbstractPackageAddonFactory> addonFactories;
+    private final List<AbstractNotificationFactory> notificationFactories;
     private final DefaultTableModel tableModel = new DefaultTableModel();
     private final JTable table = new JTable(tableModel);
 
-    public AdopterDashboardPanel(ShelterModel model, JsonDatabase database, Adopter adopter, Runnable logoutAction) {
+    public AdopterDashboardPanel(ShelterModel model, JsonDatabase database, Adopter adopter,
+            List<AbstractPackageAddonFactory> addonFactories,
+            List<AbstractNotificationFactory> notificationFactories, Runnable logoutAction) {
         this.model = model;
         this.database = database;
         this.adopter = adopter;
+        this.addonFactories = addonFactories;
+        this.notificationFactories = notificationFactories;
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
         JPanel actions = new JPanel(new GridLayout(2, 3, 8, 8));
@@ -78,11 +86,13 @@ public class AdopterDashboardPanel extends JPanel {
         if (selected == null) return;
         Animal animal = available.get(java.util.Arrays.asList(choices).indexOf(selected));
         ArrayList<String> addOns = new ArrayList<>();
-        for (String addOn : PackageFactory.ADD_ONS) {
-            if (JOptionPane.showConfirmDialog(this, "Add " + addOn + "?", "Adoption package",
-                    JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) addOns.add(addOn);
+        for (AbstractPackageAddonFactory addonFactory : addonFactories) {
+            if (JOptionPane.showConfirmDialog(this, "Add " + addonFactory.getAddonName() + "?", "Adoption package",
+                    JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                addOns.add(addonFactory.getAddonName());
+            }
         }
-        model.addAdoption(new AdoptionRequest(model.nextAdoptionId(), adopter, animal, addOns));
+        model.addAdoption(new AdoptionRequest(model.nextAdoptionId(), adopter, animal, addOns, addonFactories));
         database.save(model);
         showRequests();
         showMessage("Adoption request submitted.");
@@ -100,7 +110,7 @@ public class AdopterDashboardPanel extends JPanel {
     }
 
     private void showProfile() {
-        ProfileSettingsDialog.show(this, model, database, adopter);
+        ProfileSettingsDialog.show(this, model, database, adopter, notificationFactories);
     }
 
     private void showMessage(String message) {

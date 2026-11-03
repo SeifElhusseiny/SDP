@@ -22,7 +22,8 @@ import shelter.model.ShelterModel;
 import shelter.model.User;
 import shelter.model.Volunteer;
 import shelter.model.VolunteerAssignment;
-import shelter.patterns.factory.UserFactory;
+import shelter.patterns.factory.decorator.AbstractPackageAddonFactory;
+import shelter.patterns.factory.user.AbstractUserFactory;
 import shelter.patterns.observer.Observer;
 
 // SINGLETON pattern: the one object that reads and writes the JSON files.
@@ -202,12 +203,15 @@ public class JsonDatabase {
 
     // ============================== LOAD ==============================
 
-    public void load(ShelterModel model) {
+    public void load(ShelterModel model, List<AbstractUserFactory> userFactories,
+            List<AbstractPackageAddonFactory> addonFactories) {
         // Users first, because donations, events and adoptions point to users.
         for (Map<String, Object> map : readList(USERS)) {
-            User user = UserFactory.createUser(text(map, "role"), number(map, "id"), text(map, "name"),
-                    text(map, "email"), text(map, "phone"), textList(map, "channels"));
-            user.setPasswordHash(text(map, "passwordHash"));
+            String role = text(map, "role");
+            AbstractUserFactory userFactory = findUserFactory(userFactories, role);
+            User user = userFactory.createUser(number(map, "id"), text(map, "name"),
+                    text(map, "email"), text(map, "phone"), textList(map, "channels"),
+                    text(map, "passwordHash"));
             if (map.containsKey("emailNotifications") || map.containsKey("phoneNotifications")
                     || map.containsKey("socialMediaNotifications")) {
                 user.setEmailNotifications(textList(map, "emailNotifications"));
@@ -226,6 +230,7 @@ public class JsonDatabase {
             } else if (user instanceof Adopter) {
                 ((Adopter) user).setHomeType(text(map, "homeType"));
             }
+
             model.addUser(user);
         }
 
@@ -280,7 +285,7 @@ public class JsonDatabase {
             if (adopter instanceof Adopter && animal != null) {
                 // DECORATOR: the package is rebuilt from the saved add-on names.
                 AdoptionRequest request = new AdoptionRequest(number(map, "id"), (Adopter) adopter, animal,
-                        textList(map, "addOns"));
+                        textList(map, "addOns"), addonFactories);
                 request.setStatus(text(map, "status"));
                 model.addAdoption(request);
             }
@@ -294,6 +299,15 @@ public class JsonDatabase {
         }
 
         model.recalculateIds();
+    }
+
+    private AbstractUserFactory findUserFactory(List<AbstractUserFactory> userFactories, String role) {
+        for (AbstractUserFactory userFactory : userFactories) {
+            if (userFactory.getUserType().equals(role)) {
+                return userFactory;
+            }
+        }
+        throw new IllegalArgumentException("No user factory registered for role: " + role);
     }
 
     // ============================== FILE HELPERS ==============================

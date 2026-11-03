@@ -3,6 +3,7 @@ package shelter.view;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -16,6 +17,7 @@ import shelter.model.Donor;
 import shelter.model.ShelterModel;
 import shelter.model.User;
 import shelter.model.Validator;
+import shelter.patterns.factory.strategy.AbstractNotificationFactory;
 
 final class ProfileSettingsDialog {
     private static final String[] HOME_TYPES = {"Apartment", "House with garden", "Farm"};
@@ -23,7 +25,8 @@ final class ProfileSettingsDialog {
     private ProfileSettingsDialog() {
     }
 
-    static void show(Component parent, ShelterModel model, JsonDatabase database, User user) {
+    static void show(Component parent, ShelterModel model, JsonDatabase database, User user,
+            List<AbstractNotificationFactory> notificationFactories) {
         String details = "Name: " + user.getName() + "\nEmail: " + user.getEmail()
                 + "\nPhone: " + user.getPhone();
         if (user instanceof Donor) {
@@ -38,7 +41,8 @@ final class ProfileSettingsDialog {
         JTextField name = new JTextField(user.getName(), 24);
         JTextField email = new JTextField(user.getEmail(), 24);
         JTextField phone = new JTextField(user.getPhone(), 24);
-        NotificationChannelSelector channels = new NotificationChannelSelector(user.getPreferredChannels());
+        NotificationChannelSelector channels =
+                new NotificationChannelSelector(notificationFactories, user.getPreferredChannels());
         JPanel fields = new JPanel(new GridLayout(0, 2, 8, 6));
         fields.add(new JLabel("Name:"));
         fields.add(name);
