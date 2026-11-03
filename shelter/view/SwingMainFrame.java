@@ -20,6 +20,8 @@ import javax.swing.SwingConstants;
 import shelter.database.JsonDatabase;
 import shelter.model.ShelterModel;
 import shelter.model.Adopter;
+import shelter.model.Donor;
+import shelter.model.Volunteer;
 import shelter.model.User;
 import shelter.service.AuthenticationService;
 import shelter.service.Session;
@@ -205,13 +207,13 @@ public class SwingMainFrame extends JFrame {
                 dashboard = new AdminDashboardPanel(model, database, user, this::logout);
                 break;
             case "Volunteer":
-                dashboard = new VolunteerDashboardPanel(user, this::logout, this::showActionPlaceholder);
+                dashboard = new VolunteerDashboardPanel(model, database, (Volunteer) user, this::logout);
                 break;
             case "Adopter":
                 dashboard = new AdopterDashboardPanel(model, database, (Adopter) user, this::logout);
                 break;
             case "Donor":
-                dashboard = new DonorDashboardPanel(user, this::logout, this::showActionPlaceholder);
+                dashboard = new DonorDashboardPanel(model, database, (Donor) user, this::logout);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported user role: " + user.getRole());

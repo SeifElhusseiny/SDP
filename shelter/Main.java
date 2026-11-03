@@ -7,6 +7,10 @@ import shelter.view.SwingMainFrame;
 
 import javax.swing.SwingUtilities;
 
+// for console-based interface
+// import shelter.controller.MainController;
+// import shelter.view.ConsoleView;
+
 public class Main {
     public static void main(String[] args) {
         ShelterModel model = ShelterModel.getInstance();
@@ -22,9 +26,13 @@ public class Main {
             System.out.println("Data loaded from: " + database.getFolderPath());
         }
 
+        // Uncomment the following line to run the console-based interface instead of the Swing GUI.
+        // new MainController(new ConsoleView()).run();
+        
         SwingUtilities.invokeLater(() -> {
             SwingMainFrame frame = new SwingMainFrame(model, database);
             frame.setVisible(true);
         });
+
     }
 }

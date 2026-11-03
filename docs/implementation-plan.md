@@ -206,14 +206,14 @@ may be available through normal signup.
 - [x] Keep `shelter/view/VolunteerDashboardPanel.java` as the Volunteer entry point.
 - [x] Display the logged-in Volunteer's name and role.
 - [x] Add a visible Logout action.
-- [ ] View assigned events and tasks.
-- [ ] View relevant animals.
+- [x] View assigned events and tasks.
+- [x] View relevant animals.
 - [ ] View animal care history.
-- [ ] Record allowed animal-care information.
-- [ ] Record Volunteer hours.
-- [ ] View Volunteer skill and availability.
-- [ ] Generate a Volunteer certificate.
-- [ ] View shelter notifications.
+- [x] Record allowed animal-care information.
+- [x] Record Volunteer hours.
+- [x] View Volunteer skill and availability.
+- [x] Generate a Volunteer certificate.
+- [x] View shelter notifications.
 - [ ] Prevent Volunteer access to Admin-only management actions.
 
 ## Phase 10: Implement the Adopter dashboard
@@ -235,11 +235,11 @@ may be available through normal signup.
 - [x] Keep `shelter/view/DonorDashboardPanel.java` as the Donor entry point.
 - [x] Display the logged-in Donor's name and role.
 - [x] Add a visible Logout action.
-- [ ] Make a donation.
-- [ ] Support money and in-kind donations.
-- [ ] Select a payment method using the existing strategies.
-- [ ] View only the Donor's own donation history.
-- [ ] View and print the Donor's receipts.
+- [x] Make a donation.
+- [x] Support money and in-kind donations.
+- [x] Select a payment method using the existing strategies.
+- [x] View only the Donor's own donation history.
+- [x] View and print the Donor's receipts.
 - [ ] View shelter events.
 - [ ] Manage the Donor's profile and notification preferences.
 - [ ] Prevent Donors from editing other users' donations.
