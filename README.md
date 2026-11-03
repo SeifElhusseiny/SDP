@@ -1,9 +1,25 @@
-# Paws & Whiskers Shelter System
+# PawKind Shelter System
 
-Paws & Whiskers is a Java animal-shelter management application being
-migrated from a console interface to a Swing desktop interface.
+A Java animal-shelter management application, currently being migrated from a console interface to a Swing desktop interface. It supports adoption workflows, donations, events, volunteer management, and shelter reporting, built around a set of classic object-oriented design patterns.
 
-## Current application flow
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [User Roles](#user-roles)
+- [Architecture and Design Patterns](#architecture-and-design-patterns)
+- [Getting Started](#getting-started)
+- [Demo Accounts](#demo-accounts)
+- [Managing Data](#managing-data)
+- [Project Structure](#project-structure)
+- [Roadmap](#roadmap)
+- [Documentation](#documentation)
+
+## Overview
+
+PawKind persists all data as JSON files in the `data/` directory. The domain model, controllers, and pattern implementations are independent of Swing, so the original console interface and the new desktop interface share the same core logic.
+
+**Application flow**
 
 ```text
 Application startup
@@ -18,69 +34,42 @@ Welcome page
             Login
 ```
 
-The application loads and saves its data as JSON files in the `data/`
-directory.
+## Features
 
-## User roles
-
-| Role | Meaning | Current dashboard |
-|---|---|---|
-| Admin | Shelter administrator | Functional Admin dashboard |
-| Volunteer | Shelter worker | Dashboard shell with placeholder actions |
-| Adopter | Client interested in adoption | Functional Adopter dashboard |
-| Donor | Client who supports the shelter | Dashboard shell with placeholder actions |
-
-Public signup currently creates only Adopter or Donor accounts. Admin and
-Volunteer accounts are not available through public signup.
-
-## Implemented functionality
-
-### Application and authentication
+### Authentication
 
 - Swing startup on the Event Dispatch Thread
-- Welcome page
 - Login by email and password
 - Signup for Adopter and Donor accounts
 - Password hashing and verification
 - Session login and logout
-- JSON persistence for user accounts and password hashes
 - Duplicate-email prevention
 - Role-based dashboard selection
+- JSON persistence for user accounts and password hashes
 
-### Admin dashboard
+### Admin Dashboard
 
-The Admin dashboard currently provides a table-based interface for:
+A table-based interface for:
 
-- Viewing users
-- Adding users through `UserFactory`
-- Viewing and adding animals
-- Editing basic animal information
-- Viewing donations
-- Viewing events
-- Viewing adoption requests
-- Approving or rejecting adoption requests
-- Deleting adoption requests
-- Deleting users and animals with reference checks
+- Viewing users and adding users through `UserFactory`
+- Viewing and adding animals, and editing basic animal information
+- Viewing donations and events
+- Viewing, approving, rejecting, and deleting adoption requests
+- Deleting users and animals, with reference checks
 - Viewing a shelter summary report
 - Saving successful changes to JSON
 
-### Adopter dashboard
+### Adopter Dashboard
 
-The Adopter dashboard currently provides:
-
-- Browsing available animals
-- Viewing animal details
-- Submitting adoption requests
-- Selecting adoption-package add-ons
-- Viewing the logged-in adopter's own requests
-- Viewing request status
+- Browsing available animals and viewing animal details
+- Submitting adoption requests with selectable adoption-package add-ons
+- Viewing the logged-in adopter's own requests and their status
 - Viewing the adopter profile
 - Saving adoption requests to JSON
 
-### Existing Java domain functionality
+### Core Domain Capabilities
 
-The original Java controllers and model already support more operations than
-are currently exposed through Swing:
+The original Java controllers and model support more operations than the Swing interface currently exposes. These remain available through the console controllers while the Swing panels are completed:
 
 - Animal CRUD and care records
 - User CRUD
@@ -91,106 +80,90 @@ are currently exposed through Swing:
 - Communication through notification strategies
 - Shelter impact reports
 
-These operations remain available in the console controllers while the Swing
-panels are being completed.
+## User Roles
 
-## Panels still to be implemented
+| Role | Description | Dashboard Status |
+|------|-------------|------------------|
+| Admin | Shelter administrator | Functional |
+| Adopter | Client interested in adoption | Functional |
+| Volunteer | Shelter worker | Shell with placeholder actions |
+| Donor | Client who supports the shelter | Shell with placeholder actions |
 
-The following Swing panels or actions are intentionally still incomplete:
+> Public signup creates only **Adopter** and **Donor** accounts. Admin and Volunteer accounts are not available through public signup.
 
-- Admin donation management
-- Admin event management
-- Admin lookup-table management
-- Admin communication
-- Admin full reports
-- Animal care records and care history in Swing
-- Admin user filtering and detailed user editing
-- Volunteer assigned-events and animal-care actions
-- Volunteer hours and certificate actions
-- Donor donations and payment-method selection
-- Donor donation history and receipts
-- Adopter profile and notification-channel editing
-- Controller/service-level authorization checks
-- Automatic UI refresh through Observer events
+## Architecture and Design Patterns
 
-The implementation checklist is maintained in
-[`docs/implementation-plan.md`](docs/implementation-plan.md).
-
-## Design patterns
-
-The application uses the following patterns:
-
-- **Singleton:** shared `ShelterModel` and `JsonDatabase`
-- **Factory:** creation of user types and adoption packages
-- **Decorator:** adoption-package add-ons
-- **Strategy:** payment and notification methods
-- **Observer:** donation, event, and adoption notifications
-- **MVC:** model, controllers, and console/Swing views
+| Pattern | Usage |
+|---------|-------|
+| **Singleton** | Shared `ShelterModel` and `JsonDatabase` |
+| **Factory** | Creation of user types and adoption packages |
+| **Decorator** | Adoption-package add-ons |
+| **Strategy** | Payment and notification methods |
+| **Observer** | Donation, event, and adoption notifications |
+| **MVC** | Model, controllers, and console/Swing views |
 
 The model and pattern packages are kept independent of Swing.
 
-## Running the application
+## Getting Started
 
-Run commands from the project root:
+### Prerequisites
+
+- A Java Development Kit (JDK) with `javac` on your `PATH`
+- A graphical desktop environment (required for the Swing interface)
+
+### Build and Run
+
+From the project root:
 
 ```bash
-cd "/storage/UNIcourses/Spftwar Design Patterns/project/SDP"
 rm -rf /tmp/sdp-classes
 mkdir -p /tmp/sdp-classes
 javac -d /tmp/sdp-classes $(find shelter -name "*.java" -print)
 java -cp /tmp/sdp-classes shelter.Main
 ```
 
-The application requires a graphical desktop environment.
+## Demo Accounts
 
-## Demo accounts
+Sample data is seeded by `SampleData` only when the database is first initialized. Afterwards, users are loaded from `data/users.json`.
 
-The seeded demo password for all accounts is:
-
-```text
-demo1234
-```
+The seeded password for all demo accounts is `demo1234`.
 
 | Role | Name | Email |
-|---|---|---|
+|------|------|-------|
 | Admin | Ahmed | `ahmed@shelter.org` |
 | Donor | Seif | `seif@mail.com` |
 | Volunteer | Moaz | `moaz@mail.com` |
 | Adopter | Patrick | `patrick@mail.com` |
 
-Demo users are created by `SampleData` only when the database is initialized.
-After that, users are loaded from `data/users.json`.
+## Managing Data
 
-## Resetting demo data
+### Reset to Fresh Sample Data
 
-To preserve the current data, rename the data directory as a backup:
+Back up the current data directory, then compile and run the application again. A new `data/` directory with fresh sample data is created.
 
 ```bash
-cd "/storage/UNIcourses/Spftwar Design Patterns/project/SDP"
 mv data data-backup
 ```
 
-Then compile and run the application again. A new `data/` directory with fresh
-sample data will be created.
+### Restore a Backup
 
-To restore the backup after closing the application:
+After closing the application:
 
 ```bash
 rm -rf data
 mv data-backup data
 ```
 
-Do not delete `data/` unless its saved users, animals, events, donations, and
-adoption records are no longer needed.
+> **Warning:** Do not delete `data/` unless its saved users, animals, events, donations, and adoption records are no longer needed.
 
-## Project structure
+## Project Structure
 
 ```text
 shelter/
   Main.java
   model/          Domain entities and validation
   database/       JSON persistence
-  controller/     Existing console controllers
+  controller/     Console controllers
   service/        Authentication and session services
   patterns/       Factory, Strategy, Decorator, and Observer implementations
   view/           Console and Swing views
@@ -199,3 +172,40 @@ docs/
   implementation-plan.md
   Major Task SP 2026.docx
 ```
+
+## Roadmap
+
+The following Swing panels and actions are still in progress.
+
+**Admin**
+
+- [ ] Donation management
+- [ ] Event management
+- [ ] Lookup-table management
+- [ ] Communication
+- [ ] Full reports
+- [ ] User filtering and detailed user editing
+
+**Volunteer**
+
+- [ ] Assigned events and animal-care actions
+- [ ] Hours and certificate actions
+
+**Donor**
+
+- [ ] Donations and payment-method selection
+- [ ] Donation history and receipts
+
+**Adopter**
+
+- [ ] Profile and notification-channel editing
+
+**Shared**
+
+- [ ] Animal care records and care history in Swing
+- [ ] Controller/service-level authorization checks
+- [ ] Automatic UI refresh through Observer events
+
+## Documentation
+
+The full implementation checklist is maintained in [`docs/implementation-plan.md`](docs/implementation-plan.md).
