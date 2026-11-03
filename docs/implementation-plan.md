@@ -100,7 +100,7 @@ may be available through normal signup.
 - [x] Add name, email, phone, and password fields.
 - [x] Add password confirmation.
 - [x] Add allowed client-role selection.
-- [ ] Add notification-channel selection.
+- [x] Add notification-channel selection.
 - [x] Validate required fields.
 - [x] Validate email format.
 - [x] Validate password rules.
@@ -132,12 +132,14 @@ may be available through normal signup.
 ### Admin: User Management
 
 - [x] View all users.
-- [ ] Filter users by Admin, Volunteer, Adopter, or Donor.
+- [x] Filter users by Admin, Volunteer, Adopter, or Donor.
 - [ ] View a user by ID.
 - [x] Add a user using `UserFactory`.
-- [ ] Edit user profile and notification channels.
-- [ ] Edit Volunteer skill, availability, and hours.
-- [ ] Edit Adopter home type.
+- [x] Validate email format and prevent duplicate emails when adding a user.
+- [x] Edit user profile and notification channels.
+- [x] Edit Volunteer hours.
+- [x] Edit Volunteer skill and availability.
+- [x] Edit Adopter home type.
 - [x] Delete a user only when donation/adoption references allow it.
 - [x] Create or approve Volunteer accounts.
 
@@ -154,28 +156,28 @@ may be available through normal signup.
 
 ### Admin: Donation Management
 
-- [ ] View all donations.
-- [ ] View a donation by ID.
-- [ ] View a donor's donation history.
-- [ ] Make a donation on behalf of a donor.
-- [ ] Support money and in-kind donations.
-- [ ] Support all existing payment strategies.
-- [ ] Edit donation amount and type.
-- [ ] Delete a donation and update the donor total.
-- [ ] Print a donation receipt.
-- [ ] Generate a yearly tax document.
+- [x] View all donations.
+- [x] View a donation by ID.
+- [x] View a donor's donation history.
+- [x] Make a donation on behalf of a donor.
+- [x] Support money and in-kind donations.
+- [x] Support all existing payment strategies.
+- [x] Edit donation amount and type.
+- [x] Delete a donation and update the donor total.
+- [x] View a donation receipt.
+- [x] Generate a yearly tax document.
 
 ### Admin: Event Management
 
-- [ ] Create an event.
-- [ ] View all events.
-- [ ] View an event with attendees and assignments.
-- [ ] Edit an event.
-- [ ] Cancel an event.
-- [ ] Register users for an event.
-- [ ] Assign Volunteers by skill.
-- [ ] Mark attendance.
-- [ ] Send event reminders.
+- [x] Create an event.
+- [x] View all events.
+- [x] View an event with attendees and assignments.
+- [x] Edit an event.
+- [x] Cancel an event.
+- [x] Register users for an event.
+- [x] Assign Volunteers by skill.
+- [x] Mark attendance.
+- [x] Send event reminders.
 
 ### Admin: Adoption Management
 
@@ -227,7 +229,7 @@ may be available through normal signup.
 - [x] Select adoption-package add-ons.
 - [x] View only the Adopter's own adoption requests.
 - [x] View adoption-request status.
-- [ ] Manage the Adopter's profile and notification preferences.
+- [x] Manage the Adopter's profile and notification preferences.
 - [x] Prevent Adopters from approving, rejecting, or deleting requests.
 
 ## Phase 11: Implement the Donor dashboard
@@ -241,7 +243,7 @@ may be available through normal signup.
 - [x] View only the Donor's own donation history.
 - [x] View and print the Donor's receipts.
 - [ ] View shelter events.
-- [ ] Manage the Donor's profile and notification preferences.
+- [x] Manage the Donor's profile and notification preferences.
 - [ ] Prevent Donors from editing other users' donations.
 
 ## Phase 12: Refactor controllers for Swing and authorization

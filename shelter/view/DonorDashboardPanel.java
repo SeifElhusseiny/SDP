@@ -130,9 +130,7 @@ public class DonorDashboardPanel extends JPanel {
     }
 
     private void showProfile() {
-        JOptionPane.showMessageDialog(this, "Name: " + donor.getName() + "\nEmail: " + donor.getEmail()
-                + "\nPhone: " + donor.getPhone() + "\nTotal donated: " + donor.getTotalDonated() + " EGP",
-                "My profile", JOptionPane.INFORMATION_MESSAGE);
+        ProfileSettingsDialog.show(this, model, database, donor);
     }
 
     private String required(String label) {

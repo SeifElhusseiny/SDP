@@ -4,11 +4,12 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 
 import shelter.model.ShelterModel;
 import shelter.model.User;
 import shelter.model.Validator;
+import shelter.patterns.factory.StrategyFactory;
 import shelter.patterns.factory.UserFactory;
 
 public class AuthenticationService {
@@ -26,7 +27,7 @@ public class AuthenticationService {
         return user;
     }
 
-    public User signup(String role, String name, String email, String phone, char[] password) {
+    public User signup(String role, String name, String email, String phone, List<String> channels, char[] password) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Name cannot be empty.");
         }
@@ -48,8 +49,14 @@ public class AuthenticationService {
         if (!"Adopter".equals(role) && !"Donor".equals(role)) {
             throw new IllegalArgumentException("Public signup is only available for adopters and donors.");
         }
+        if (channels == null || channels.isEmpty()) {
+            throw new IllegalArgumentException("Select at least one notification channel.");
+        }
+        if (!Arrays.asList(StrategyFactory.CHANNELS).containsAll(channels)) {
+            throw new IllegalArgumentException("Select valid notification channels.");
+        }
         User user = UserFactory.createUser(role, model.nextUserId(), name, email, phone,
-                Collections.singletonList("Email"), hash(password));
+                channels, hash(password));
         model.addUser(user);
         return user;
     }

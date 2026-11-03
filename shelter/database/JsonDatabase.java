@@ -131,7 +131,9 @@ public class JsonDatabase {
         map.put("phone", user.getPhone());
         map.put("passwordHash", user.getPasswordHash());
         map.put("channels", user.getPreferredChannels());
-        map.put("notifications", user.getNotifications());
+        map.put("emailNotifications", user.getEmailNotifications());
+        map.put("phoneNotifications", user.getPhoneNotifications());
+        map.put("socialMediaNotifications", user.getSocialMediaNotifications());
         if (user instanceof Donor) {
             map.put("totalDonated", ((Donor) user).getTotalDonated());
         } else if (user instanceof Volunteer) {
@@ -206,7 +208,14 @@ public class JsonDatabase {
             User user = UserFactory.createUser(text(map, "role"), number(map, "id"), text(map, "name"),
                     text(map, "email"), text(map, "phone"), textList(map, "channels"));
             user.setPasswordHash(text(map, "passwordHash"));
-            user.setNotifications(textList(map, "notifications"));
+            if (map.containsKey("emailNotifications") || map.containsKey("phoneNotifications")
+                    || map.containsKey("socialMediaNotifications")) {
+                user.setEmailNotifications(textList(map, "emailNotifications"));
+                user.setPhoneNotifications(textList(map, "phoneNotifications"));
+                user.setSocialMediaNotifications(textList(map, "socialMediaNotifications"));
+            } else {
+                user.setNotifications(textList(map, "notifications"));
+            }
             if (user instanceof Donor) {
                 ((Donor) user).setTotalDonated(decimal(map, "totalDonated"));
             } else if (user instanceof Volunteer) {
