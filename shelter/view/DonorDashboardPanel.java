@@ -32,11 +32,13 @@ public class DonorDashboardPanel extends JPanel {
         this.donor = donor;
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
-        JPanel actions = new JPanel(new GridLayout(1, 5, 8, 8));
+        JPanel actions = new JPanel(new GridLayout(2, 3, 8, 8));
         addButton(actions, "Make a donation", this::makeDonation);
         addButton(actions, "Donation history", this::showHistory);
         addButton(actions, "Receipt", this::showReceipt);
         addButton(actions, "My profile", this::showProfile);
+        addButton(actions, "Notifications", () -> NotificationPanel.show(
+                javax.swing.SwingUtilities.getWindowAncestor(this), donor));
         addButton(actions, "Logout", logoutAction);
         add(actions, BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);
@@ -70,6 +72,10 @@ public class DonorDashboardPanel extends JPanel {
             donation.notifyObservers("Donation #" + donation.getId() + " received. Thank you!");
             database.save(model);
             showHistory();
+            JOptionPane.showMessageDialog(this,
+                    "Notification sent to you and the shelter administrators:\n\n"
+                            + "Donation #" + donation.getId() + " received. Thank you!",
+                    "Notification", JOptionPane.INFORMATION_MESSAGE);
             JOptionPane.showMessageDialog(this, donation.generateReceipt(), "Donation receipt",
                     JOptionPane.INFORMATION_MESSAGE);
         } catch (RuntimeException exception) {

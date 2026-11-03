@@ -32,11 +32,13 @@ public class AdopterDashboardPanel extends JPanel {
         this.adopter = adopter;
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
-        JPanel actions = new JPanel(new GridLayout(1, 4, 8, 8));
+        JPanel actions = new JPanel(new GridLayout(2, 3, 8, 8));
         addButton(actions, "Available animals", this::showAnimals);
         addButton(actions, "Adoption request", this::createRequest);
         addButton(actions, "My requests", this::showRequests);
         addButton(actions, "My profile", this::showProfile);
+        addButton(actions, "Notifications", () -> NotificationPanel.show(
+                javax.swing.SwingUtilities.getWindowAncestor(this), adopter));
         addButton(actions, "Logout", logoutAction);
         add(actions, BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);

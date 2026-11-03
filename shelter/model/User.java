@@ -17,6 +17,7 @@ public abstract class User implements Observer {
     private String phone;
     private List<String> preferredChannels;
     private String passwordHash = "";
+    private final List<String> notifications = new ArrayList<>();
 
     public User(int id, String name, String email, String phone, List<String> preferredChannels) {
         this.id = id;
@@ -44,6 +45,7 @@ public abstract class User implements Observer {
 
     @Override
     public void update(String message) {
+        notifications.add(message);
         // STRATEGY: one service, and the strategy is switched at runtime for each channel.
         NotificationService service = new NotificationService(StrategyFactory.createNotification(preferredChannels.get(0)));
         for (String channel : preferredChannels) {
@@ -58,11 +60,18 @@ public abstract class User implements Observer {
     public String getPhone() { return phone; }
     public List<String> getPreferredChannels() { return new ArrayList<>(preferredChannels); }
     public String getPasswordHash() { return passwordHash; }
+    public List<String> getNotifications() { return new ArrayList<>(notifications); }
 
     public void setName(String name) { this.name = name; }
     public void setEmail(String email) { this.email = email; }
     public void setPhone(String phone) { this.phone = phone; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash == null ? "" : passwordHash; }
+    public void setNotifications(List<String> messages) {
+        notifications.clear();
+        if (messages != null) {
+            notifications.addAll(messages);
+        }
+    }
     public void setPreferredChannels(List<String> preferredChannels) {
         this.preferredChannels = atLeastOneChannel(preferredChannels);
     }

@@ -52,7 +52,7 @@ public class AdminDashboardPanel extends JPanel {
         JPanel header = new JPanel(new BorderLayout());
         sectionLabel.setText("Admin: " + admin.getName() + " | Users");
         header.add(sectionLabel, BorderLayout.WEST);
-        JPanel buttons = new JPanel(new GridLayout(2, 5, 5, 5));
+        JPanel buttons = new JPanel(new GridLayout(3, 4, 5, 5));
         addSectionButton(buttons, "Users");
         addSectionButton(buttons, "Animals");
         addSectionButton(buttons, "Donations");
@@ -62,6 +62,8 @@ public class AdminDashboardPanel extends JPanel {
         addActionButton(buttons, "Edit", this::edit);
         addActionButton(buttons, "Delete", this::delete);
         addActionButton(buttons, "Reports", this::showReport);
+        addActionButton(buttons, "Notifications", () -> NotificationPanel.show(
+                javax.swing.SwingUtilities.getWindowAncestor(this), admin));
         addActionButton(buttons, "Logout", logoutAction);
         header.add(buttons, BorderLayout.EAST);
         return header;
@@ -172,8 +174,16 @@ public class AdminDashboardPanel extends JPanel {
                     String[] choices = {"Approved", "Rejected"};
                     String status = (String) JOptionPane.showInputDialog(this, "Decision", "Adoption request",
                             JOptionPane.PLAIN_MESSAGE, null, choices, choices[0]);
-                    if ("Approved".equals(status)) request.approve();
-                    else if ("Rejected".equals(status)) request.reject();
+                    if ("Approved".equals(status)) {
+                        request.approve();
+                        showNotification(request.getAdopter().getName(),
+                                "Your adoption of " + request.getAnimal().getName() + " was approved! Total: "
+                                        + request.getAdoptionPackage().getCost() + " EGP");
+                    } else if ("Rejected".equals(status)) {
+                        request.reject();
+                        showNotification(request.getAdopter().getName(),
+                                "Sorry, your adoption request for " + request.getAnimal().getName() + " was rejected.");
+                    }
                 }
             } else {
                 throw new IllegalArgumentException("Edit is not available for this section yet.");
@@ -225,6 +235,12 @@ public class AdminDashboardPanel extends JPanel {
                 + "\nEvents: " + model.getAllEvents().size()
                 + "\nAdoptions: " + model.getAllAdoptions().size(), "Shelter report",
                 JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void showNotification(String recipient, String message) {
+        JOptionPane.showMessageDialog(this,
+                "Notification sent to " + recipient + ":\n\n" + message,
+                "Notification", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private String required(String label) {

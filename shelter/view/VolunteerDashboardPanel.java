@@ -40,7 +40,8 @@ public class VolunteerDashboardPanel extends JPanel {
         addButton(actions, "Volunteer hours", this::logHours);
         addButton(actions, "Certificate", this::certificate);
         addButton(actions, "My profile", this::showProfile);
-        addButton(actions, "Notifications", () -> showMessage("Notifications are delivered through preferred channels."));
+        addButton(actions, "Notifications", () -> NotificationPanel.show(
+                javax.swing.SwingUtilities.getWindowAncestor(this), volunteer));
         addButton(actions, "Logout", logoutAction);
         add(actions, BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);
